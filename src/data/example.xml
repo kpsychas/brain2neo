@@ -7,7 +7,7 @@
         <personalBrainVersion>8021</personalBrainVersion>
         <telepathyVersion>10</telepathyVersion>
         <fileRoot>D:\Dropbox\arxeia\brain\Example_brain\Files</fileRoot>
-        <generatedDateTime>2016-01-14 01:19:44.050 @-0500</generatedDateTime>
+        <generatedDateTime>2016-01-24 00:13:27.400 @-0500</generatedDateTime>
         <homeThoughtGuid>E6520F88-4EC8-C239-C06A-2E08EBE6F4BC</homeThoughtGuid>
         <modificationDateTime>2016-01-14 01:11:44.568 @-0500</modificationDateTime>
     </Source>
@@ -275,7 +275,7 @@
             <creationDateTime>2016-01-13 17:19:37.589 @-0500</creationDateTime>
             <realModificationDateTime>2016-01-13 17:19:37.589 @-0500</realModificationDateTime>
             <displayModificationDateTime>2016-01-13 17:20:28.867 @-0500</displayModificationDateTime>
-            <activationDateTime>2016-01-13 17:20:53.305 @-0500</activationDateTime>
+            <activationDateTime>2016-01-24 00:06:58.701 @-0500</activationDateTime>
             <linksModificationDateTime>2016-01-13 17:20:58.453 @-0500</linksModificationDateTime>
             <isType>0</isType>
             <color>0</color>
@@ -301,7 +301,7 @@
             <creationDateTime>2016-01-14 00:06:20.899 @-0500</creationDateTime>
             <realModificationDateTime>2016-01-14 00:06:20.899 @-0500</realModificationDateTime>
             <displayModificationDateTime>2016-01-14 00:06:59.302 @-0500</displayModificationDateTime>
-            <activationDateTime>2016-01-14 00:06:20.899 @-0500</activationDateTime>
+            <activationDateTime>2016-01-24 00:07:00.667 @-0500</activationDateTime>
             <linksModificationDateTime>2016-01-14 00:07:55.688 @-0500</linksModificationDateTime>
             <isType>0</isType>
             <color>0</color>
@@ -340,8 +340,8 @@
             <creationDateTime>2016-01-13 17:15:26.610 @-0500</creationDateTime>
             <realModificationDateTime>2016-01-13 17:15:26.610 @-0500</realModificationDateTime>
             <displayModificationDateTime>2016-01-13 17:19:31.052 @-0500</displayModificationDateTime>
-            <activationDateTime>2016-01-13 17:15:26.610 @-0500</activationDateTime>
-            <linksModificationDateTime>2016-01-13 17:19:31.049 @-0500</linksModificationDateTime>
+            <activationDateTime>2016-01-24 00:06:51.383 @-0500</activationDateTime>
+            <linksModificationDateTime>2016-01-24 00:06:54.794 @-0500</linksModificationDateTime>
             <isType>0</isType>
             <color>0</color>
             <accessControlType>0</accessControlType>
@@ -353,11 +353,24 @@
             <creationDateTime>2016-01-13 17:15:14.781 @-0500</creationDateTime>
             <realModificationDateTime>2016-01-13 17:15:14.781 @-0500</realModificationDateTime>
             <displayModificationDateTime>2016-01-13 17:15:20.348 @-0500</displayModificationDateTime>
-            <activationDateTime>2016-01-14 00:06:14.275 @-0500</activationDateTime>
+            <activationDateTime>2016-01-24 00:10:06.522 @-0500</activationDateTime>
             <linksModificationDateTime>2016-01-14 00:06:20.916 @-0500</linksModificationDateTime>
             <isType>0</isType>
             <color>0</color>
             <accessControlType>0</accessControlType>
+        </Thought>
+        <Thought>
+            <guid>369A6D2A-4107-CC7E-B9E6-2619EB1ACD7E</guid>
+            <name>Metadata</name>
+            <label></label>
+            <creationDateTime>2016-01-24 00:10:31.828 @-0500</creationDateTime>
+            <realModificationDateTime>2016-01-24 00:11:16.209 @-0500</realModificationDateTime>
+            <displayModificationDateTime>2016-01-24 00:11:16.209 @-0500</displayModificationDateTime>
+            <activationDateTime>2016-01-24 00:10:45.097 @-0500</activationDateTime>
+            <linksModificationDateTime>2016-01-24 00:10:31.847 @-0500</linksModificationDateTime>
+            <isType>0</isType>
+            <color>0</color>
+            <accessControlType>1</accessControlType>
         </Thought>
         <Thought>
             <guid>798D15AD-EA7D-2925-4AAE-4498FA3E1D9A</guid>
@@ -430,7 +443,7 @@
             <label></label>
             <creationDateTime>2016-01-13 16:46:26.601 @-0500</creationDateTime>
             <realModificationDateTime>2016-01-13 16:46:26.601 @-0500</realModificationDateTime>
-            <displayModificationDateTime>2016-01-13 17:05:44.493 @-0500</displayModificationDateTime>
+            <displayModificationDateTime>2016-01-14 01:36:34.022 @-0500</displayModificationDateTime>
             <activationDateTime>2016-01-14 01:19:24.476 @-0500</activationDateTime>
             <linksModificationDateTime>2016-01-13 17:20:33.317 @-0500</linksModificationDateTime>
             <isType>0</isType>
@@ -490,6 +503,19 @@
             <accessControlType>0</accessControlType>
         </Thought>
         <Thought>
+            <guid>E6520F88-4EC8-C239-C06A-2E08EBE6F4BC</guid>
+            <name>Example</name>
+            <label></label>
+            <creationDateTime>2016-01-13 15:03:29.509 @-0500</creationDateTime>
+            <realModificationDateTime>2016-01-13 15:03:29.509 @-0500</realModificationDateTime>
+            <displayModificationDateTime>2016-01-13 17:14:01.102 @-0500</displayModificationDateTime>
+            <activationDateTime>2016-01-24 00:10:07.393 @-0500</activationDateTime>
+            <linksModificationDateTime>2016-01-24 00:10:31.847 @-0500</linksModificationDateTime>
+            <isType>0</isType>
+            <color>0</color>
+            <accessControlType>0</accessControlType>
+        </Thought>
+        <Thought>
             <guid>FAE86854-470C-2D99-AFEE-4AAC7F8642D9</guid>
             <name>People</name>
             <label></label>
@@ -498,19 +524,6 @@
             <displayModificationDateTime>2016-01-13 17:13:18.643 @-0500</displayModificationDateTime>
             <activationDateTime>2016-01-14 01:19:20.875 @-0500</activationDateTime>
             <linksModificationDateTime>2016-01-14 01:11:55.109 @-0500</linksModificationDateTime>
-            <isType>0</isType>
-            <color>0</color>
-            <accessControlType>0</accessControlType>
-        </Thought>
-        <Thought>
-            <guid>E6520F88-4EC8-C239-C06A-2E08EBE6F4BC</guid>
-            <name>Example</name>
-            <label></label>
-            <creationDateTime>2016-01-13 15:03:29.509 @-0500</creationDateTime>
-            <realModificationDateTime>2016-01-13 15:03:29.509 @-0500</realModificationDateTime>
-            <displayModificationDateTime>2016-01-13 17:14:01.102 @-0500</displayModificationDateTime>
-            <activationDateTime>2016-01-13 21:05:20.891 @-0500</activationDateTime>
-            <linksModificationDateTime>2016-01-13 17:15:14.804 @-0500</linksModificationDateTime>
             <isType>0</isType>
             <color>0</color>
             <accessControlType>0</accessControlType>
@@ -548,8 +561,8 @@
             <creationDateTime>2016-01-13 17:05:26.571 @-0500</creationDateTime>
             <realModificationDateTime>2016-01-13 17:05:26.571 @-0500</realModificationDateTime>
             <displayModificationDateTime>2016-01-13 17:05:47.757 @-0500</displayModificationDateTime>
-            <activationDateTime>2016-01-14 01:15:14.987 @-0500</activationDateTime>
-            <linksModificationDateTime>2016-01-13 17:09:38.758 @-0500</linksModificationDateTime>
+            <activationDateTime>2016-01-24 00:06:42.887 @-0500</activationDateTime>
+            <linksModificationDateTime>2016-01-24 00:06:54.794 @-0500</linksModificationDateTime>
             <isType>0</isType>
             <color>0</color>
             <accessControlType>0</accessControlType>
@@ -1414,6 +1427,24 @@
             <linkTypeID></linkTypeID>
         </Link>
         <Link>
+            <guid>6D38C65F-CFDD-01BE-F31B-0505E79C66C3</guid>
+            <idA>4378BF95-ED52-6AC2-977D-B1286B2C3126</idA>
+            <idB>FBC9744D-EDF5-2ED6-D9E8-A1A69D16043C</idB>
+            <dir>3</dir>
+            <isBackward>0</isBackward>
+            <name></name>
+            <labelForward></labelForward>
+            <labelBackward></labelBackward>
+            <creationDateTime>2016-01-24 00:06:54.792 @-0500</creationDateTime>
+            <modificationDateTime>2016-01-24 00:06:54.792 @-0500</modificationDateTime>
+            <isType>0</isType>
+            <color>0</color>
+            <thickness>0</thickness>
+            <strength>0</strength>
+            <meaning>0</meaning>
+            <linkTypeID></linkTypeID>
+        </Link>
+        <Link>
             <guid>3C49AA0B-4131-A0B0-098B-FF6CD17C6DF9</guid>
             <idA>124A3BBC-1071-AA1B-D784-2F505596D411</idA>
             <idB>14E0422B-9F2E-F67E-B83F-34FA3765F011</idB>
@@ -1447,6 +1478,24 @@
             <thickness>0</thickness>
             <strength>0</strength>
             <meaning>1</meaning>
+            <linkTypeID></linkTypeID>
+        </Link>
+        <Link>
+            <guid>A302F983-4653-C61A-D737-9A345C4F213E</guid>
+            <idA>E6520F88-4EC8-C239-C06A-2E08EBE6F4BC</idA>
+            <idB>369A6D2A-4107-CC7E-B9E6-2619EB1ACD7E</idB>
+            <dir>3</dir>
+            <isBackward>0</isBackward>
+            <name></name>
+            <labelForward></labelForward>
+            <labelBackward></labelBackward>
+            <creationDateTime>2016-01-24 00:10:31.829 @-0500</creationDateTime>
+            <modificationDateTime>2016-01-24 00:10:31.848 @-0500</modificationDateTime>
+            <isType>0</isType>
+            <color>0</color>
+            <thickness>0</thickness>
+            <strength>0</strength>
+            <meaning>0</meaning>
             <linkTypeID></linkTypeID>
         </Link>
     </Links>
@@ -1542,6 +1591,51 @@
             <format>HTML</format>
             <creationDateTime>2016-01-14 01:13:59.452 @-0500</creationDateTime>
             <modificationDateTime>2016-01-14 01:13:59.452 @-0500</modificationDateTime>
+        </Entry>
+        <Entry>
+            <guid>7477029B-837D-EC3B-42B8-C3FCEA4392C2</guid>
+            <EntryObjects>
+                <EntryObject>
+                    <objectType>0</objectType>
+                    <objectID>66CB3FE8-2DDF-1FC4-64B8-7FE77C4ED4B5</objectID>
+                </EntryObject>
+            </EntryObjects>
+            <body></body>
+            <format>HTML</format>
+            <creationDateTime>2016-01-14 01:36:34.021 @-0500</creationDateTime>
+            <modificationDateTime>2016-01-14 01:36:34.021 @-0500</modificationDateTime>
+        </Entry>
+        <Entry>
+            <guid>4F7374DF-3CBF-0C63-91A3-5C0F7B8F4E65</guid>
+            <EntryObjects>
+                <EntryObject>
+                    <objectType>0</objectType>
+                    <objectID>369A6D2A-4107-CC7E-B9E6-2619EB1ACD7E</objectID>
+                </EntryObject>
+            </EntryObjects>
+            <body>&amp;lt;!DOCTYPE html PUBLIC &amp;quot;-//W3C//DTD XHTML 1.0 Transitional//EN&amp;quot; &amp;quot;http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd&amp;quot;&amp;gt;&amp;lt;html xmlns=&amp;quot;http://www.w3.org/1999/xhtml&amp;quot;&amp;gt;
+&amp;lt;head&amp;gt;
+&amp;lt;meta name=&amp;quot;generator&amp;quot; content=&amp;quot;EditLive! 9.1.0.119&amp;quot; /&amp;gt;
+&amp;lt;meta name=&amp;quot;generator&amp;quot; content=&amp;quot;TheBrain 8.0.2.1&amp;quot; /&amp;gt;
+&amp;lt;meta http-equiv=&amp;quot;Content-Type&amp;quot; content=&amp;quot;text/html; charset=UTF-8&amp;quot; /&amp;gt;
+&amp;lt;style type=&amp;quot;text/css&amp;quot;&amp;gt;
+body {
+font-family: Arial;  font-size: small;  background: #ffffff;  color: #000000;
+}
+p {
+margin-top: 0pt;  margin-bottom: 0pt;
+}
+&amp;lt;/style&amp;gt;
+&amp;lt;/head&amp;gt;
+&amp;lt;body&amp;gt;
+&amp;lt;p&amp;gt;19 thoughts&amp;lt;/p&amp;gt;
+&amp;lt;p&amp;gt;29 links&amp;lt;/p&amp;gt;
+&amp;lt;/body&amp;gt;
+&amp;lt;/html&amp;gt;
+</body>
+            <format>HTML</format>
+            <creationDateTime>2016-01-24 00:10:56.475 @-0500</creationDateTime>
+            <modificationDateTime>2016-01-24 00:10:56.475 @-0500</modificationDateTime>
         </Entry>
     </Entries>
     <Attachments>

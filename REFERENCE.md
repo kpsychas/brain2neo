@@ -24,22 +24,20 @@ or inferred from link attributes (isBackward, idA, idB)
 in a different case (dir=3).
 Relationships must have a direction in Neo4j.
 
-Database configuration
-----------------------
-Currently there is no support for database customization and it is assumed that
-Neo4j uses the default URL assuming no authorization.
-By default authorization is required in Neo4j and shouldn't be disabled
-if network is insecure.
-More [here](http://neo4j.com/docs/stable/security-server.html).
+Script configuration
+--------------------
+Available configuration options are documented in specification.cfg
+which includes their type (boolean, integer, string) and their default
+value. The actual configuration is loaded from a file with extension `.cfg`
+which has the same name (and is in same folder) as the corresponding 
+XML file that is to be converted.
 
-One can edit line
+For example if we want to convert `foo.xml` to a database we should create 
+a file `foo.cfg` following specification file `src/data/specification.cfg`
+as template and run
 
-    graph = Graph()
+    $ python brain2neo.py -f foo.xml
 
-to
-
-    graph = Graph("http://<user>:<pass>@<IP>:<port>/db/data/")
-
-where all fields in brackets should be replaced with their respective values.
-
-Database must have no Nodes initially.
+If `foo.cfg` does not exist an empty one will be created which behaves as
+if default configuration is selected for every option.
+`src/data/specification.xml` has a possible non default configuration.

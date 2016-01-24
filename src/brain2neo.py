@@ -1,6 +1,10 @@
+import os
+
 import xml.etree.ElementTree as ET
 
 from py2neo import Graph, Node, Relationship
+from configobj import ConfigObj, flatten_errors
+from validate import Validator
 
 import HTMLParser
 
@@ -24,10 +28,23 @@ def updateRelationship(id1, relType, id2, guid, nodes, types, relationships):
         except KeyError:
             pass
 
-def store2neo(root):
-    # This imports the Graph class from py2neo and creates a instance
-    # bound to the default Neo4j server URI, http://localhost:7474/db/data/.
-    graph = Graph()
+def ignore(forgotten, accessControlType, cfg):
+    # ignore forgotten thoughts or private thoughts if configuration
+    # requires it
+    ignore_private = cfg['Brain']['ignore_private']
+    ignore_forgotten = cfg['Brain']['ignore_forgotten']
+
+    return (forgotten and ignore_forgotten) \
+        or (accessControlType == '1' and ignore_private)
+
+def store2neo(root, cfg):
+    neo4j_uri = cfg['Neo4j']['neo4j_uri']
+
+    # Creates a py2neo Graph object (does not connect)
+    if neo4j_uri != '':
+        graph = Graph(neo4j_uri)
+    else:
+        graph = Graph()
 
     cypher = graph.cypher
     results = cypher.execute("MATCH (n) RETURN n IS NULL AS isEmpty LIMIT 1;")
@@ -48,9 +65,10 @@ def store2neo(root):
 
         isType = thought.find('isType').text
         forgotten = thought.find('forgottenDateTime') is not None
+        accessControlType = thought.find('accessControlType').text
 
         # ignore forgotten thoughts
-        if not forgotten:
+        if not ignore(forgotten, accessControlType, cfg):
             try:
                 name = h.unescape(name)
             except:
@@ -117,11 +135,63 @@ def store2neo(root):
     create_entities(graph, nodes)
     create_entities(graph, relationships)
 
+def get_cfgobj(cfgfile, cfgspecfile):
+    if cfgfile == cfgspecfile:
+        raise ValueError('Configuration file is the same as specification file'
+                         '{}:'.format(cfgspecfile))
+
+    config = ConfigObj(cfgfile, configspec=cfgspecfile,
+                       file_error=True)
+
+    validator = Validator()
+    res = config.validate(validator, preserve_errors=True)
+
+    # res is not boolean necessarily
+    if res is True:
+        return config
+    else:
+        self.print_validation_errors(config, res)
+        raise ValueError('Failed to validate file {} using'
+                         ' specification {}'.format(cfgfile,
+                                                    cfgspecfile))
+
+def get_cfg(xmlfile):
+    f, ext = os.path.splitext(xmlfile)
+    cfgfile = f + '.cfg'
+    cfgspecfile = os.path.join('data', 'specification.cfg')
+
+    if not os.path.isfile(cfgfile):
+        print('Warning configuration file {} does not exist'.format(cfgfile))
+        print('Generating empty configuration file {} (=default behavior)'
+            .format(cfgfile))
+
+        # try to create file (can fail do to any kind of race condition)
+        try:
+            os.mknod(cfgfile)
+        except IOError as e:
+            print ("I/O error({0}) while generating {2}: {1}"
+                .format(e.errno, e.strerror, cfgfile))
+            raise
+
+    return get_cfgobj(cfgfile, cfgspecfile)
+
+
 def main():
-    tree = ET.parse('example.xml')
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-f', '--file', help='Brain XML file to be parsed',
+            default=os.path.join('data', 'example.xml'))
+
+    args = parser.parse_args()
+    xmlfile = args.file
+
+    tree = ET.parse(xmlfile)
     root = tree.getroot()
 
-    store2neo(root)
+    cfg = get_cfg(xmlfile)
+
+    store2neo(root, cfg)
 
 if __name__ == '__main__':
     main()
