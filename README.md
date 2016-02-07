@@ -29,15 +29,15 @@ Quick Demo
 
 	* While being in brain2neo folder run
 
-		$ python brain2neo.py -f example/example.xml
+			$ python brain2neo.py -f example/example.xml
 
-	* While being in project's root folder run
+	* or while being in project's root folder run
 
-    	$ python run_brain2neo.py -f brain2neo/example/example.xml
+    		$ python run_brain2neo.py -f brain2neo/example/example.xml
 
-	* While being in project's root folder run
+	* or while being in project's root folder run
 
-    	$ python -m brain2neo -f brain2neo/example/example.xml
+    		$ python -m brain2neo -f brain2neo/example/example.xml
 
 4. Access database using the web interface or any other preferred UI and
 `brain2neo/example/example.xml` using the import feature of
@@ -50,15 +50,9 @@ or a pull request with a fix.
 
 Install
 -------
-Install brain2neo as a command-line application in any of the following ways.
+After cloning the repository and while being in project's root folder run
 
-* Use pip:
-
-		$ pip install brain2neo
-
-* After cloning the repository and while being in project's root folder run
-
-		$ python setup.py install
+	$ python setup.py install
 
 Then the following command runs the main script of demo above
 
