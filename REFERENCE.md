@@ -11,7 +11,8 @@ Thought name (name tag) will be converted to Node named attribute
 Any linked types (isType = 1) and labels
 (isType = 3) will be added as unnamed attributes.
 
-If Thought is forgotten (forgottenDateTime exists) Thought will be ignored.
+If Thought is forgotten (forgottenDateTime exists) 
+or is private (accessControlType is 1), it will be ignored.
 
 Links connecting Thoughts added as Nodes will be converted to Relationships.
 Links will be named after the name that appears on the link in The Brain App.
@@ -33,11 +34,11 @@ which has the same name (and is in same folder) as the corresponding
 XML file that is to be converted.
 
 For example if we want to convert `foo.xml` to a database we should create 
-a file `foo.cfg` following specification file `src/data/specification.cfg`
+a file `foo.cfg` following specification file `brain2neo/spec/specification.cfg`
 as template and run
 
     $ python brain2neo.py -f foo.xml
 
 If `foo.cfg` does not exist an empty one will be created which behaves as
 if default configuration is selected for every option.
-`src/data/specification.xml` has a possible non default configuration.
+`brain2neo/example/example.cfg` has a possible non default configuration.

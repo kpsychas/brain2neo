@@ -1,0 +1,9 @@
+Version 1.0
+-----------
+
+Implemented basic functionality of converting thoughts and links to nodes
+and relationships.
+
+Minimal customization
+
+Project can be installed as standalone command
