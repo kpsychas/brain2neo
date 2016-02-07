@@ -1,15 +1,21 @@
+#!/usr/bin/env python
+
 import os
+
+from pkg_resources import resource_filename
 
 import xml.etree.ElementTree as ET
 
 from py2neo import Graph, Node, Relationship
+from py2neo.packages.httpstream.http import SocketError
 from configobj import ConfigObj, flatten_errors
 from validate import Validator
 
 import HTMLParser
 
+
 def chunks(l, n):
-    """Yield successive n-sized chunks from l."""
+    """ Yield successive n-sized chunks from l. """
     for i in xrange(0, len(l), n):
         yield l[i:i+n]
 
@@ -46,10 +52,17 @@ def store2neo(root, cfg):
     else:
         graph = Graph()
 
-    cypher = graph.cypher
+    try:
+        cypher = graph.cypher
+    except SocketError as e:
+        print('SocketError, there is likely no active connection to database.')
+        app_exit(1)
+
+    print('Verifying provided database is empty.')
     results = cypher.execute("MATCH (n) RETURN n IS NULL AS isEmpty LIMIT 1;")
     if results.one is not None:
-        raise Exception('Graph is not empty')
+        print('Provided database graph is not empty. Choose another one.')
+        app_exit(0)
 
     thoughts = root.find('Thoughts').findall('Thought')
     # use to convert HTML to text, used for support of non-ascii characters
@@ -72,7 +85,7 @@ def store2neo(root, cfg):
             try:
                 name = h.unescape(name)
             except:
-                print('Unsuccessful decoding of {} of type {} and length {}'.
+                print('Unsuccessful decoding of {} of type {} and length {}.'.
                     format(name, type(name), len(name)))
                 raise
 
@@ -137,8 +150,8 @@ def store2neo(root, cfg):
 
 def get_cfgobj(cfgfile, cfgspecfile):
     if cfgfile == cfgspecfile:
-        raise ValueError('Configuration file is the same as specification file'
-                         '{}:'.format(cfgspecfile))
+        raise ValueError('Configuration file is the same as specification file:'
+                         ' {}.'.format(cfgspecfile))
 
     config = ConfigObj(cfgfile, configspec=cfgspecfile,
                        file_error=True)
@@ -151,23 +164,24 @@ def get_cfgobj(cfgfile, cfgspecfile):
         return config
     else:
         self.print_validation_errors(config, res)
-        raise ValueError('Failed to validate file {} using'
-                         ' specification {}'.format(cfgfile,
-                                                    cfgspecfile))
+        raise ValueError('Failed to validate file {} using '
+                         'specification {}'.format(cfgfile,
+                                                   cfgspecfile))
+
 
 def get_cfg(xmlfile):
     f, ext = os.path.splitext(xmlfile)
     cfgfile = f + '.cfg'
-    cfgspecfile = os.path.join('data', 'specification.cfg')
+    cfgspecfile = resource_filename(__name__, os.path.join('spec', 'specification.cfg'))
 
     if not os.path.isfile(cfgfile):
         print('Warning configuration file {} does not exist'.format(cfgfile))
         print('Generating empty configuration file {} (=default behavior)'
             .format(cfgfile))
 
-        # try to create file (can fail do to any kind of race condition)
+        # try to create file (can fail due to any kind of race condition)
         try:
-            os.mknod(cfgfile)
+            open(cfgfile, 'a').close()
         except IOError as e:
             print ("I/O error({0}) while generating {2}: {1}"
                 .format(e.errno, e.strerror, cfgfile))
@@ -176,20 +190,42 @@ def get_cfg(xmlfile):
     return get_cfgobj(cfgfile, cfgspecfile)
 
 
+def get_root(xmlfile):
+    tree = ET.parse(xmlfile)
+    return tree.getroot()
+
+
+def app_exit(status):
+    print('Exiting...')
+    exit(status)
+
+
 def main():
     import argparse
 
     parser = argparse.ArgumentParser()
     parser.add_argument('-f', '--file', help='Brain XML file to be parsed',
-            default=os.path.join('data', 'example.xml'))
+                        required=True)
 
     args = parser.parse_args()
     xmlfile = args.file
 
-    tree = ET.parse(xmlfile)
-    root = tree.getroot()
+    try:
+        print('Getting root element from XML {}.'.format(xmlfile))
+        root = get_root(xmlfile)
+    except ET.ParseError as e:
+        print("Error while parsing {0}: {1}".format(xmlfile, e))
+        app_exit(1)
+    except IOError as e:
+        print("I/O error({0}): {1}".format(e.errno, e.strerror))
+        app_exit(1)
 
-    cfg = get_cfg(xmlfile)
+    try:
+        print('Getting configuration of XML {}.'.format(xmlfile))
+        cfg = get_cfg(xmlfile)
+    except IOError as e:
+        print("I/O error({0}): {1}".format(e.errno, e.strerror))
+        app_exit(1)
 
     store2neo(root, cfg)
 

@@ -1,1 +1,5 @@
 TODO.txt
+*.pyc
+brain2neo.egg-info/
+build/
+dist/
