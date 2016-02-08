@@ -6,7 +6,7 @@ from setuptools import setup
 setup(name='brain2neo',
       description='convert XML exported from The Brain to Neo4j database',
       keywords=['Neo4j'],
-      version='1.0',
+      version='1.1',
       packages=['brain2neo'],
       install_requires=[
         'configobj >= 5.0.0'

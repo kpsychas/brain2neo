@@ -28,31 +28,53 @@ def create_entities(graph, entities):
 def updateRelationship(id1, relType, id2, guid, nodes, types, relationships):
     if id1 in types and id2 in nodes:
         nodes[id2].labels.add(types[id1])
+    if id2 in types and id1 in nodes:
+        nodes[id1].labels.add(types[id2])
     else:
         try:
             relationships[guid] = Relationship(nodes[id1], relType, nodes[id2])
         except KeyError:
+            # might occur for ignored thoughts or connections between types
             pass
 
 def ignore(forgotten, accessControlType, cfg):
     # ignore forgotten thoughts or private thoughts if configuration
     # requires it
-    ignore_private = cfg['Brain']['ignore_private']
-    ignore_forgotten = cfg['Brain']['ignore_forgotten']
+    ignore_private = cfg['Convert']['ignore_private']
+    ignore_forgotten = cfg['Convert']['ignore_forgotten']
 
     return (forgotten and ignore_forgotten) \
         or (accessControlType == '1' and ignore_private)
 
+def tree_braindir(dir):
+    if dir == '1':
+        return 'parent_to_child'
+    elif dir == '2':
+        return 'child_to_parent'
+    else:
+        return 'sibling'
+
+def is_treelink(dir):
+    return dir == '1' or dir == '2'
+
+def is_siblinglink(dir):
+    return dir == '3'
+
 def store2neo(root, cfg):
     neo4j_uri = cfg['Neo4j']['neo4j_uri']
+    treeneodir = cfg['Convert']['tree_neodir']
+    treeneoname = cfg['Convert']['tree_neoname']
+    siblneoname = cfg['Convert']['sibl_neoname']
 
-    # Creates a py2neo Graph object (does not connect)
+    # Creates a py2neo Graph object (does not connect to db yet)
     if neo4j_uri != '':
         graph = Graph(neo4j_uri)
     else:
         graph = Graph()
 
     try:
+        # TODO in case there is an active connection during the lifetime of
+        # this object better close it after first query
         cypher = graph.cypher
     except SocketError as e:
         print('SocketError, there is likely no active connection to database.')
@@ -72,6 +94,7 @@ def store2neo(root, cfg):
     # types is a dictionary of thought type names with keys guid values
     types = {}
 
+    print('Parsing Thoughts.')
     for thought in thoughts:
         name = thought.find('name').text
         guid = thought.find('guid').text
@@ -100,6 +123,7 @@ def store2neo(root, cfg):
     # linktypes is a dictionary of link type names with keys guid values
     linktypes = {}
 
+    print('Parsing Link Types.')
     for link in links:
         isType = link.find('isType').text
         guid = link.find('guid').text
@@ -108,6 +132,7 @@ def store2neo(root, cfg):
         if isType == '1':
             linktypes[guid] = h.unescape(name).upper()
 
+    print('Parsing Links.')
     for link in links:
         isType = link.find('isType').text
         if isType == '1':
@@ -120,20 +145,24 @@ def store2neo(root, cfg):
         dir = link.find('dir').text
         linkTypeID = link.find('linkTypeID').text
 
+        # decide name
         if name is not None:
             relType = h.unescape(name).upper()
         elif linkTypeID is not None:
             relType = linktypes[linkTypeID]
-        elif dir == '1' or dir == '2':
-            relType = 'CHILD'
-        elif dir == '3':
-            relType = 'RELATED'
+        elif is_treelink(dir):
+            relType = treeneoname
+        elif is_siblinglink(dir):
+            relType = siblneoname
 
-        if dir == '1':
-            id1, id2 = idA, idB
-        elif dir == '2':
-            id1, id2 = idB, idA
-        elif dir == '3':
+        # decide direction
+        treebraindir = tree_braindir(dir)
+        if is_treelink(dir):
+            if treebraindir == treeneodir:
+                id1, id2 = idA, idB
+            else:
+                id1, id2 = idB, idA
+        elif is_siblinglink(dir):
             isBackward = link.find('isBackward').text
             if isBackward == '0':
                 id1, id2 = idA, idB
@@ -145,8 +174,24 @@ def store2neo(root, cfg):
 
         updateRelationship(id1, relType, id2, guid, nodes, types, relationships)
 
+    print('Creating graph entities.')
     create_entities(graph, nodes)
     create_entities(graph, relationships)
+
+
+def print_validation_errors(config, res):
+    for entry in flatten_errors(config, res):
+        # each entry is a tuple
+        section_list, key, error = entry
+        if key is not None:
+            section_list.append(key)
+        else:
+            section_list.append('[missing section]')
+        section_string = ', '.join(section_list)
+        if error is False:
+            error = 'Missing value or section.'
+        print section_string, ' = ', error
+
 
 def get_cfgobj(cfgfile, cfgspecfile):
     if cfgfile == cfgspecfile:
@@ -163,7 +208,7 @@ def get_cfgobj(cfgfile, cfgspecfile):
     if res is True:
         return config
     else:
-        self.print_validation_errors(config, res)
+        print_validation_errors(config, res)
         raise ValueError('Failed to validate file {} using '
                          'specification {}'.format(cfgfile,
                                                    cfgspecfile))
@@ -171,13 +216,14 @@ def get_cfgobj(cfgfile, cfgspecfile):
 
 def get_cfg(xmlfile):
     f, ext = os.path.splitext(xmlfile)
-    cfgfile = f + '.cfg'
-    cfgspecfile = resource_filename(__name__, os.path.join('spec', 'specification.cfg'))
+    cfgfile = '{}.cfg'.format(f)
+    cfgspecfile = resource_filename(__name__,
+                                    os.path.join('spec', 'specification.cfg'))
 
     if not os.path.isfile(cfgfile):
         print('Warning configuration file {} does not exist'.format(cfgfile))
         print('Generating empty configuration file {} (=default behavior)'
-            .format(cfgfile))
+              .format(cfgfile))
 
         # try to create file (can fail due to any kind of race condition)
         try:
