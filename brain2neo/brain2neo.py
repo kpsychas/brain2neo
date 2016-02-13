@@ -60,11 +60,21 @@ def is_treelink(dir):
 def is_siblinglink(dir):
     return dir == '3'
 
+def is_backwardlink(isBackward):
+    return isBackward == '1'
+
+def is_directedlink(strength):
+    return strength == '2' or strength == '3'
+
+def is_2waymode(sibl_mode):
+    return sibl_mode == '2way'
+
 def store2neo(root, cfg):
     neo4j_uri = cfg['Neo4j']['neo4j_uri']
     treeneodir = cfg['Convert']['tree_neodir']
     treeneoname = cfg['Convert']['tree_neoname']
     siblneoname = cfg['Convert']['sibl_neoname']
+    siblmode = cfg['Convert']['sibl_mode']
 
     # Creates a py2neo Graph object (does not connect to db yet)
     if neo4j_uri != '':
@@ -123,6 +133,19 @@ def store2neo(root, cfg):
     # linktypes is a dictionary of link type names with keys guid values
     linktypes = {}
 
+    # ignored link attributes
+    # --------------------------------------------------------------------------
+    # | name                 | explanation                                     |
+    # --------------------------------------------------------------------------
+    # | labelForward         | ? (empty by default)                            |
+    # | labelBackward        | ? (empty by default)                            |
+    # | creationDateTime     | timestamp                                       |
+    # | modificationDateTime | timestamp                                       |
+    # | color                | color of link in the Brain                      |
+    # | thickness            | ? (0 by default)                                |
+    # | meaning              | 2 if link between labels, 1 otherwise           |
+    # --------------------------------------------------------------------------
+
     print('Parsing Link Types.')
     for link in links:
         isType = link.find('isType').text
@@ -134,6 +157,7 @@ def store2neo(root, cfg):
 
     print('Parsing Links.')
     for link in links:
+        # ignore type links
         isType = link.find('isType').text
         if isType == '1':
             continue
@@ -141,8 +165,9 @@ def store2neo(root, cfg):
         guid = link.find('guid').text
         idA = link.find('idA').text
         idB = link.find('idB').text
-        name = link.find('name').text
         dir = link.find('dir').text
+        name = link.find('name').text
+        strength = link.find('strength').text
         linkTypeID = link.find('linkTypeID').text
 
         # decide name
@@ -164,7 +189,7 @@ def store2neo(root, cfg):
                 id1, id2 = idB, idA
         elif is_siblinglink(dir):
             isBackward = link.find('isBackward').text
-            if isBackward == '0':
+            if not is_backwardlink(isBackward):
                 id1, id2 = idA, idB
             else:
                 id1, id2 = idB, idA
@@ -173,6 +198,10 @@ def store2neo(root, cfg):
             continue
 
         updateRelationship(id1, relType, id2, guid, nodes, types, relationships)
+        if is_directedlink(strength) and is_2waymode(sibl_mode):
+            updateRelationship(id1, relType, id2, guid, nodes, types,
+                               relationships)
+
 
     print('Creating graph entities.')
     create_entities(graph, nodes)
