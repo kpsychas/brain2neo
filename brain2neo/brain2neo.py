@@ -54,6 +54,13 @@ def tree_braindir(dir):
     else:
         return 'sibling'
 
+def linkname(h, name, upper_linknames):
+    if upper_linknames:
+        return h.unescape(name).upper()
+    else:
+        return h.unescape(name)
+
+
 def is_treelink(dir):
     return dir == '1' or dir == '2'
 
@@ -64,10 +71,15 @@ def is_backwardlink(isBackward):
     return isBackward == '1'
 
 def is_directedlink(strength):
+    # if 2 link can be traversed both ways in the Brain,
+    # but not when 3 (in Neo4j there is no difference)
     return strength == '2' or strength == '3'
 
-def is_2waymode(sibl_mode):
-    return sibl_mode == '2way'
+def is_2waymode(siblmode):
+    return siblmode == '2way'
+
+def is_linktype(isType):
+    return isType == '1'
 
 def store2neo(root, cfg):
     neo4j_uri = cfg['Neo4j']['neo4j_uri']
@@ -75,6 +87,7 @@ def store2neo(root, cfg):
     treeneoname = cfg['Convert']['tree_neoname']
     siblneoname = cfg['Convert']['sibl_neoname']
     siblmode = cfg['Convert']['sibl_mode']
+    upper_linknames = cfg['Convert']['upper_linknames']
 
     # Creates a py2neo Graph object (does not connect to db yet)
     if neo4j_uri != '':
@@ -119,7 +132,7 @@ def store2neo(root, cfg):
                 name = h.unescape(name)
             except:
                 print('Unsuccessful decoding of {} of type {} and length {}.'.
-                    format(name, type(name), len(name)))
+                      format(name, type(name), len(name)))
                 raise
 
             if isType != '0':
@@ -152,8 +165,8 @@ def store2neo(root, cfg):
         guid = link.find('guid').text
         name = link.find('name').text
 
-        if isType == '1':
-            linktypes[guid] = h.unescape(name).upper()
+        if is_linktype(isType):
+            linktypes[guid] = linkname(h, name, upper_linknames)
 
     print('Parsing Links.')
     for link in links:
@@ -172,7 +185,7 @@ def store2neo(root, cfg):
 
         # decide name
         if name is not None:
-            relType = h.unescape(name).upper()
+            relType = linkname(h, name, upper_linknames)
         elif linkTypeID is not None:
             relType = linktypes[linkTypeID]
         elif is_treelink(dir):
@@ -198,8 +211,10 @@ def store2neo(root, cfg):
             continue
 
         updateRelationship(id1, relType, id2, guid, nodes, types, relationships)
-        if is_directedlink(strength) and is_2waymode(sibl_mode):
-            updateRelationship(id1, relType, id2, guid, nodes, types,
+        if (is_siblinglink(dir) and not is_directedlink(strength) and
+                is_2waymode(siblmode)):
+            backguid = '{}-B'.format(guid)
+            updateRelationship(id2, relType, id1, backguid, nodes, types,
                                relationships)
 
 
