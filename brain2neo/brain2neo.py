@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import os
+import logging as log
 
 from pkg_resources import resource_filename
 
@@ -22,7 +23,12 @@ def chunks(l, n):
 def create_entities(graph, entities):
     entities_v = entities.values()
 
-    for entities_batch in chunks(entities_v, 100):
+    s = 1
+    batch_size = 100
+    log.debug('Batch size: {}'.format(batch_size))
+    for entities_batch in chunks(entities_v, batch_size):
+        log.debug('Batch: {}-{}'.format(s, s + len(entities_batch) - 1))
+        s += batch_size
         graph.create(*entities_batch)
 
 def updateRelationship(id1, relType, id2, guid, nodes, types, relationships):
@@ -100,13 +106,13 @@ def store2neo(root, cfg):
         # this object better close it after first query
         cypher = graph.cypher
     except SocketError as e:
-        print('SocketError, there is likely no active connection to database.')
+        log.error('SocketError, there is likely no active connection to database.')
         app_exit(1)
 
-    print('Verifying provided database is empty.')
+    log.info('Verifying provided database is empty.')
     results = cypher.execute("MATCH (n) RETURN n IS NULL AS isEmpty LIMIT 1;")
     if results.one is not None:
-        print('Provided database graph is not empty. Choose another one.')
+        log.warn('Provided database graph is not empty. Choose another one.')
         app_exit(0)
 
     thoughts = root.find('Thoughts').findall('Thought')
@@ -117,7 +123,7 @@ def store2neo(root, cfg):
     # types is a dictionary of thought type names with keys guid values
     types = {}
 
-    print('Parsing Thoughts.')
+    log.info('Parsing Thoughts.')
     for thought in thoughts:
         name = thought.find('name').text
         guid = thought.find('guid').text
@@ -131,8 +137,8 @@ def store2neo(root, cfg):
             try:
                 name = h.unescape(name)
             except:
-                print('Unsuccessful decoding of {} of type {} and length {}.'.
-                      format(name, type(name), len(name)))
+                log.error('Unsuccessful decoding of {} of type {} and length {}.'.
+                          format(name, type(name), len(name)))
                 raise
 
             if isType != '0':
@@ -159,7 +165,7 @@ def store2neo(root, cfg):
     # | meaning              | 2 if link between labels, 1 otherwise           |
     # --------------------------------------------------------------------------
 
-    print('Parsing Link Types.')
+    log.info('Parsing Link Types.')
     for link in links:
         isType = link.find('isType').text
         guid = link.find('guid').text
@@ -168,7 +174,7 @@ def store2neo(root, cfg):
         if is_linktype(isType):
             linktypes[guid] = linkname(h, name, upper_linknames)
 
-    print('Parsing Links.')
+    log.info('Parsing Links.')
     for link in links:
         # ignore type links
         isType = link.find('isType').text
@@ -217,9 +223,10 @@ def store2neo(root, cfg):
             updateRelationship(id2, relType, id1, backguid, nodes, types,
                                relationships)
 
-
-    print('Creating graph entities.')
+    log.info('Creating graph entities.')
+    log.info('Creating {} nodes.'.format(len(nodes)))
     create_entities(graph, nodes)
+    log.info('Creating {} relationships.'.format(len(relationships)))
     create_entities(graph, relationships)
 
 
@@ -234,7 +241,7 @@ def print_validation_errors(config, res):
         section_string = ', '.join(section_list)
         if error is False:
             error = 'Missing value or section.'
-        print section_string, ' = ', error
+        log.error('{} = {}'.format(section_string, error))
 
 
 def get_cfgobj(cfgfile, cfgspecfile):
@@ -265,16 +272,16 @@ def get_cfg(xmlfile):
                                     os.path.join('spec', 'specification.cfg'))
 
     if not os.path.isfile(cfgfile):
-        print('Warning configuration file {} does not exist'.format(cfgfile))
-        print('Generating empty configuration file {} (=default behavior)'
-              .format(cfgfile))
+        log.warn('Warning configuration file {} does not exist'.format(cfgfile))
+        log.warn('Generating empty configuration file {} (=default behavior)'
+                 .format(cfgfile))
 
         # try to create file (can fail due to any kind of race condition)
         try:
             open(cfgfile, 'a').close()
         except IOError as e:
-            print ("I/O error({0}) while generating {2}: {1}"
-                .format(e.errno, e.strerror, cfgfile))
+            log.error("I/O error({0}) while generating {2}: {1}"
+                      .format(e.errno, e.strerror, cfgfile))
             raise
 
     return get_cfgobj(cfgfile, cfgspecfile)
@@ -286,7 +293,7 @@ def get_root(xmlfile):
 
 
 def app_exit(status):
-    print('Exiting...')
+    log.info('Exiting...')
     exit(status)
 
 
@@ -296,25 +303,33 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-f', '--file', help='Brain XML file to be parsed',
                         required=True)
+    parser.add_argument("-v", "--verbose", action="count",
+                        help="increase output verbosity")
 
     args = parser.parse_args()
     xmlfile = args.file
+    if args.verbose == 2:
+        log.basicConfig(level=log.DEBUG)
+    elif args.verbose == 1:
+        log.basicConfig(level=log.INFO)
+    else:
+        log.basicConfig(level=log.WARN)
 
     try:
-        print('Getting root element from XML {}.'.format(xmlfile))
+        log.info('Getting root element from XML {}.'.format(xmlfile))
         root = get_root(xmlfile)
     except ET.ParseError as e:
-        print("Error while parsing {0}: {1}".format(xmlfile, e))
+        log.error("Error while parsing {0}: {1}".format(xmlfile, e))
         app_exit(1)
     except IOError as e:
-        print("I/O error({0}): {1}".format(e.errno, e.strerror))
+        log.error("I/O error({0}): {1}".format(e.errno, e.strerror))
         app_exit(1)
 
     try:
-        print('Getting configuration of XML {}.'.format(xmlfile))
+        log.info('Getting configuration of XML {}.'.format(xmlfile))
         cfg = get_cfg(xmlfile)
     except IOError as e:
-        print("I/O error({0}): {1}".format(e.errno, e.strerror))
+        log.error("I/O error({0}): {1}".format(e.errno, e.strerror))
         app_exit(1)
 
     store2neo(root, cfg)

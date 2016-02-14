@@ -7,7 +7,7 @@
         <personalBrainVersion>8021</personalBrainVersion>
         <telepathyVersion>10</telepathyVersion>
         <fileRoot>D:\Dropbox\arxeia\brain\Example_brain\Files</fileRoot>
-        <generatedDateTime>2016-02-13 03:29:32.925 @-0500</generatedDateTime>
+        <generatedDateTime>2016-02-13 23:43:57.962 @-0500</generatedDateTime>
         <homeThoughtGuid>E6520F88-4EC8-C239-C06A-2E08EBE6F4BC</homeThoughtGuid>
         <modificationDateTime>2016-01-14 01:11:44.568 @-0500</modificationDateTime>
     </Source>
@@ -275,7 +275,7 @@
             <creationDateTime>2016-01-13 17:19:37.589 @-0500</creationDateTime>
             <realModificationDateTime>2016-01-13 17:19:37.589 @-0500</realModificationDateTime>
             <displayModificationDateTime>2016-01-13 17:20:28.867 @-0500</displayModificationDateTime>
-            <activationDateTime>2016-02-13 03:24:16.933 @-0500</activationDateTime>
+            <activationDateTime>2016-02-13 23:42:31.405 @-0500</activationDateTime>
             <linksModificationDateTime>2016-01-13 17:20:58.453 @-0500</linksModificationDateTime>
             <isType>0</isType>
             <color>0</color>
@@ -301,7 +301,7 @@
             <creationDateTime>2016-01-14 00:06:20.899 @-0500</creationDateTime>
             <realModificationDateTime>2016-01-14 00:06:20.899 @-0500</realModificationDateTime>
             <displayModificationDateTime>2016-01-14 00:06:59.302 @-0500</displayModificationDateTime>
-            <activationDateTime>2016-02-13 03:25:12.281 @-0500</activationDateTime>
+            <activationDateTime>2016-02-13 23:42:13.746 @-0500</activationDateTime>
             <linksModificationDateTime>2016-01-14 00:07:55.688 @-0500</linksModificationDateTime>
             <isType>0</isType>
             <color>0</color>
@@ -339,8 +339,8 @@
             <label></label>
             <creationDateTime>2016-01-13 17:15:26.610 @-0500</creationDateTime>
             <realModificationDateTime>2016-01-13 17:15:26.610 @-0500</realModificationDateTime>
-            <displayModificationDateTime>2016-01-13 17:19:31.052 @-0500</displayModificationDateTime>
-            <activationDateTime>2016-01-24 00:06:51.383 @-0500</activationDateTime>
+            <displayModificationDateTime>2016-02-13 11:44:44.174 @-0500</displayModificationDateTime>
+            <activationDateTime>2016-02-13 23:42:27.812 @-0500</activationDateTime>
             <linksModificationDateTime>2016-01-24 00:06:54.794 @-0500</linksModificationDateTime>
             <isType>0</isType>
             <color>0</color>
@@ -380,7 +380,7 @@
             <creationDateTime>2016-01-13 17:15:14.781 @-0500</creationDateTime>
             <realModificationDateTime>2016-01-13 17:15:14.781 @-0500</realModificationDateTime>
             <displayModificationDateTime>2016-01-13 17:15:20.348 @-0500</displayModificationDateTime>
-            <activationDateTime>2016-02-13 03:24:40.354 @-0500</activationDateTime>
+            <activationDateTime>2016-02-13 19:54:22.346 @-0500</activationDateTime>
             <linksModificationDateTime>2016-01-14 00:06:20.916 @-0500</linksModificationDateTime>
             <isType>0</isType>
             <color>0</color>
@@ -471,7 +471,7 @@
             <creationDateTime>2016-01-13 16:46:26.601 @-0500</creationDateTime>
             <realModificationDateTime>2016-01-13 16:46:26.601 @-0500</realModificationDateTime>
             <displayModificationDateTime>2016-01-14 01:36:34.022 @-0500</displayModificationDateTime>
-            <activationDateTime>2016-02-13 03:24:08.044 @-0500</activationDateTime>
+            <activationDateTime>2016-02-13 23:42:43.572 @-0500</activationDateTime>
             <linksModificationDateTime>2016-01-13 17:20:33.317 @-0500</linksModificationDateTime>
             <isType>0</isType>
             <color>0</color>
@@ -509,8 +509,8 @@
             <label></label>
             <creationDateTime>2016-01-13 17:09:25.747 @-0500</creationDateTime>
             <realModificationDateTime>2016-01-13 17:09:25.747 @-0500</realModificationDateTime>
-            <displayModificationDateTime>2016-01-13 17:14:56.568 @-0500</displayModificationDateTime>
-            <activationDateTime>2016-01-13 17:09:40.017 @-0500</activationDateTime>
+            <displayModificationDateTime>2016-02-13 20:53:13.693 @-0500</displayModificationDateTime>
+            <activationDateTime>2016-02-13 23:41:26.905 @-0500</activationDateTime>
             <linksModificationDateTime>2016-01-13 17:12:35.048 @-0500</linksModificationDateTime>
             <isType>0</isType>
             <color>0</color>
@@ -523,7 +523,7 @@
             <creationDateTime>2016-01-13 17:12:09.205 @-0500</creationDateTime>
             <realModificationDateTime>2016-01-13 17:12:09.205 @-0500</realModificationDateTime>
             <displayModificationDateTime>2016-01-13 17:14:27.604 @-0500</displayModificationDateTime>
-            <activationDateTime>2016-01-14 01:16:03.155 @-0500</activationDateTime>
+            <activationDateTime>2016-02-13 23:41:33.069 @-0500</activationDateTime>
             <linksModificationDateTime>2016-01-13 17:14:09.866 @-0500</linksModificationDateTime>
             <isType>0</isType>
             <color>0</color>
@@ -536,7 +536,7 @@
             <creationDateTime>2016-01-13 15:03:29.509 @-0500</creationDateTime>
             <realModificationDateTime>2016-01-13 15:03:29.509 @-0500</realModificationDateTime>
             <displayModificationDateTime>2016-01-13 17:14:01.102 @-0500</displayModificationDateTime>
-            <activationDateTime>2016-02-13 03:28:35.894 @-0500</activationDateTime>
+            <activationDateTime>2016-02-13 19:54:24.188 @-0500</activationDateTime>
             <linksModificationDateTime>2016-02-13 03:22:22.588 @-0500</linksModificationDateTime>
             <isType>0</isType>
             <color>0</color>
@@ -575,7 +575,7 @@
             <creationDateTime>2016-01-13 17:05:03.494 @-0500</creationDateTime>
             <realModificationDateTime>2016-01-13 17:05:03.494 @-0500</realModificationDateTime>
             <displayModificationDateTime>2016-01-13 17:08:56.556 @-0500</displayModificationDateTime>
-            <activationDateTime>2016-02-13 03:24:12.972 @-0500</activationDateTime>
+            <activationDateTime>2016-02-13 04:08:54.450 @-0500</activationDateTime>
             <linksModificationDateTime>2016-01-13 17:20:39.175 @-0500</linksModificationDateTime>
             <isType>0</isType>
             <color>0</color>
@@ -601,7 +601,7 @@
             <creationDateTime>2016-01-13 17:08:49.504 @-0500</creationDateTime>
             <realModificationDateTime>2016-01-13 17:08:49.504 @-0500</realModificationDateTime>
             <displayModificationDateTime>2016-01-13 17:09:15.049 @-0500</displayModificationDateTime>
-            <activationDateTime>2016-01-13 21:04:50.338 @-0500</activationDateTime>
+            <activationDateTime>2016-02-13 19:54:34.489 @-0500</activationDateTime>
             <linksModificationDateTime>2016-01-13 17:12:42.893 @-0500</linksModificationDateTime>
             <isType>0</isType>
             <color>0</color>
@@ -1123,11 +1123,11 @@
             <labelForward></labelForward>
             <labelBackward></labelBackward>
             <creationDateTime>2016-01-13 17:20:33.315 @-0500</creationDateTime>
-            <modificationDateTime>2016-02-13 03:23:10.916 @-0500</modificationDateTime>
+            <modificationDateTime>2016-02-13 23:43:06.485 @-0500</modificationDateTime>
             <isType>0</isType>
             <color>0</color>
             <thickness>0</thickness>
-            <strength>3</strength>
+            <strength>0</strength>
             <meaning>0</meaning>
             <linkTypeID></linkTypeID>
         </Link>
@@ -1637,7 +1637,7 @@
             <body></body>
             <format>HTML</format>
             <creationDateTime>2016-01-13 17:14:55.984 @-0500</creationDateTime>
-            <modificationDateTime>2016-01-13 17:14:55.984 @-0500</modificationDateTime>
+            <modificationDateTime>2016-02-13 20:53:13.691 @-0500</modificationDateTime>
         </Entry>
         <Entry>
             <guid>B4991E63-F5C1-7CA5-EB90-F8C66BD018A3</guid>
@@ -1650,7 +1650,7 @@
             <body></body>
             <format>HTML</format>
             <creationDateTime>2016-01-13 17:15:57.590 @-0500</creationDateTime>
-            <modificationDateTime>2016-01-13 17:15:57.590 @-0500</modificationDateTime>
+            <modificationDateTime>2016-02-13 11:44:44.174 @-0500</modificationDateTime>
         </Entry>
         <Entry>
             <guid>D6CC8ADE-21CA-0A0B-89BC-9F1EA3238D5E</guid>
