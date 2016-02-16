@@ -41,4 +41,4 @@ as template and run
 
 If `foo.cfg` does not exist an empty one will be created which behaves as
 if default configuration is selected for every option.
-`brain2neo/example/example.cfg` has a possible non default configuration.
+`test/example.cfg` has a possible non default configuration.

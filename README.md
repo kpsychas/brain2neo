@@ -17,7 +17,7 @@ the user has created the appropriate connections while creating the brain file (
 
 Quick Demo
 ----------
-1. Edit the following line in `brain2neo/example/example.cfg`
+1. Edit the following line in `test/example.cfg`
 
     	neo4j_uri = http://localhost:7474/db/data/
 
@@ -31,15 +31,15 @@ Quick Demo
 
 	* While being in brain2neo folder run
 
-			$ python brain2neo.py -f example/example.xml
+			$ python brain2neo.py -f ../test/example.xml
 
 	* or while being in project's root folder run
 
-    		$ python run_brain2neo.py -f brain2neo/example/example.xml
+    		$ python run_brain2neo.py -f test/example.xml
 
 	* or while being in project's root folder run
 
-    		$ python -m brain2neo -f brain2neo/example/example.xml
+    		$ python -m brain2neo -f test/example.xml
 
 4. Access database using the web interface or any other preferred UI and
 `brain2neo/example/example.xml` using the import feature of
