@@ -1,0 +1,2 @@
+# https://pip.readthedocs.org/en/1.1/requirements.html
+configobj >= 5.0.0
