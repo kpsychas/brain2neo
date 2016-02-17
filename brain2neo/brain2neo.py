@@ -46,10 +46,10 @@ def ignore(forgotten, accessControlType, cfg):
     return (forgotten and ignore_forgotten) \
         or (accessControlType == '1' and ignore_private)
 
-def tree_braindir(dir):
-    if dir == '1':
+def tree_braindir(direction):
+    if direction == '1':
         return 'parent_to_child'
-    elif dir == '2':
+    elif direction == '2':
         return 'child_to_parent'
     else:
         return 'sibling'
@@ -61,11 +61,11 @@ def linkname(h, name, upper_linknames):
         return h.unescape(name)
 
 
-def is_treelink(dir):
-    return dir == '1' or dir == '2'
+def is_treelink(direction):
+    return direction == '1' or direction == '2'
 
-def is_siblinglink(dir):
-    return dir == '3'
+def is_siblinglink(direction):
+    return direction == '3'
 
 def is_backwardlink(isBackward):
     return isBackward == '1'
@@ -191,7 +191,7 @@ def store2neo(root, cfg):
         guid = link.find('guid').text
         idA = link.find('idA').text
         idB = link.find('idB').text
-        dir = link.find('dir').text
+        direction = link.find('dir').text
         name = link.find('name').text
         strength = link.find('strength').text
         linkTypeID = link.find('linkTypeID').text
@@ -201,19 +201,19 @@ def store2neo(root, cfg):
             relType = linkname(h, name, upper_linknames)
         elif linkTypeID is not None:
             relType = linktypes[linkTypeID]
-        elif is_treelink(dir):
+        elif is_treelink(direction):
             relType = treeneoname
-        elif is_siblinglink(dir):
+        elif is_siblinglink(direction):
             relType = siblneoname
 
         # decide direction
-        treebraindir = tree_braindir(dir)
-        if is_treelink(dir):
+        treebraindir = tree_braindir(direction)
+        if is_treelink(direction):
             if treebraindir == treeneodir:
                 id1, id2 = idA, idB
             else:
                 id1, id2 = idB, idA
-        elif is_siblinglink(dir):
+        elif is_siblinglink(direction):
             isBackward = link.find('isBackward').text
             if not is_backwardlink(isBackward):
                 id1, id2 = idA, idB
@@ -229,7 +229,7 @@ def store2neo(root, cfg):
             # might occur for ignored thoughts or connections with types
             updateType(id1, id2, types, nodes)
 
-        if (is_siblinglink(dir) and not is_directedlink(strength) and
+        if (is_siblinglink(direction) and not is_directedlink(strength) and
                 is_2waymode(siblmode)):
             backguid = '{}-B'.format(guid)
             try:
