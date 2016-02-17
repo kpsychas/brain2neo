@@ -42,7 +42,7 @@ Quick Demo
     		$ python -m brain2neo -f test/example.xml
 
 4. Access database using the web interface or any other preferred UI and
-`brain2neo/example/example.xml` using the import feature of
+`test/example.xml` using the import feature of
 [The Brain](http://www.thebrain.com/) app to make a comparison.
 
 The script was tested for TheBrain version 8.0.2.1 and Neo4j 2.3.1
@@ -62,7 +62,7 @@ Then the following command runs the main script of demo above
 
 About Brain XML
 ---------------
-An example XML is given in `brain2neo/example/example.xml`.
+An example XML is given in `test/example.xml`.
 It can be imported in the free version of The Brain,
 although it cannot be exported again.
 
