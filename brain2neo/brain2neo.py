@@ -7,7 +7,7 @@ from pkg_resources import resource_filename
 
 import xml.etree.ElementTree as ET
 
-from py2neo import Graph, Node, Relationship
+from py2neo import Graph, Node, Relationship, GraphError
 from py2neo.packages.httpstream.http import SocketError
 from configobj import ConfigObj, flatten_errors
 from validate import Validator
@@ -31,17 +31,14 @@ def create_entities(graph, entities):
         s += batch_size
         graph.create(*entities_batch)
 
-def updateRelationship(id1, relType, id2, guid, nodes, types, relationships):
+def updateType(id1, id2, types, nodes):
     if id1 in types and id2 in nodes:
         nodes[id2].labels.add(types[id1])
-    if id2 in types and id1 in nodes:
+    elif id2 in types and id1 in nodes:
         nodes[id1].labels.add(types[id2])
-    else:
-        try:
-            relationships[guid] = Relationship(nodes[id1], relType, nodes[id2])
-        except KeyError:
-            # might occur for ignored thoughts or connections between types
-            pass
+
+def updateRelationship(id1, relType, id2, guid, nodes, relationships):
+
 
 def ignore(forgotten, accessControlType, cfg):
     # ignore forgotten thoughts or private thoughts if configuration
@@ -87,6 +84,32 @@ def is_2waymode(siblmode):
 def is_linktype(isType):
     return isType == '1'
 
+def getGraph(neo4j_uri):
+    if neo4j_uri != '':
+        return Graph(neo4j_uri)
+    else:
+        return Graph()
+
+def getCypher(graph):
+    try:
+        # TODO in case there is an active connection during the lifetime of
+        # this object better close it after first query
+        return graph.cypher
+    except SocketError as e:
+        log.error('SocketError, there is likely no active connection to database.')
+        app_exit(1)
+    except GraphError as e:
+        log.error('GraphError: {}'.format(e.message))
+        log.error('If you use default user and password, try changing them')
+        app_exit(1)
+
+def verifyEmpty(cypher):
+    log.info('Verifying provided database is empty.')
+    results = cypher.execute("MATCH (n) RETURN n IS NULL AS isEmpty LIMIT 1;")
+    if results.one is not None:
+        log.warn('Provided database graph is not empty. Choose another one.')
+        app_exit(0)
+
 def store2neo(root, cfg):
     neo4j_uri = cfg['Neo4j']['neo4j_uri']
     treeneodir = cfg['Convert']['tree_neodir']
@@ -96,28 +119,11 @@ def store2neo(root, cfg):
     upper_linknames = cfg['Convert']['upper_linknames']
 
     # Creates a py2neo Graph object (does not connect to db yet)
-    if neo4j_uri != '':
-        graph = Graph(neo4j_uri)
-    else:
-        graph = Graph()
+    graph = getGraph(neo4j_uri)
 
-    try:
-        # TODO in case there is an active connection during the lifetime of
-        # this object better close it after first query
-        cypher = graph.cypher
-    except SocketError as e:
-        log.error('SocketError, there is likely no active connection to database.')
-        app_exit(1)
-    except GraphError as e:
-        log.error('GraphError: {}'.format(e.message))
-        log.error('If you use default user and password, try changing them')
-        app_exit(1)
+    cypher = getCypher(graph)
 
-    log.info('Verifying provided database is empty.')
-    results = cypher.execute("MATCH (n) RETURN n IS NULL AS isEmpty LIMIT 1;")
-    if results.one is not None:
-        log.warn('Provided database graph is not empty. Choose another one.')
-        app_exit(0)
+    verifyEmpty(cypher)
 
     thoughts = root.find('Thoughts').findall('Thought')
     # use to convert HTML to text, used for support of non-ascii characters
@@ -220,12 +226,21 @@ def store2neo(root, cfg):
             # dir=0 when isType is 1
             continue
 
-        updateRelationship(id1, relType, id2, guid, nodes, types, relationships)
+        try:
+            relationships[guid] = Relationship(nodes[id1], relType, nodes[id2])
+        except KeyError:
+            # might occur for ignored thoughts or connections with types
+            updateType(id1, id2, types, nodes)
+
         if (is_siblinglink(dir) and not is_directedlink(strength) and
                 is_2waymode(siblmode)):
             backguid = '{}-B'.format(guid)
-            updateRelationship(id2, relType, id1, backguid, nodes, types,
-                               relationships)
+            try:
+                relationships[backguid] = Relationship(nodes[id2], relType,
+                                                       nodes[id1])
+            except KeyError:
+                # might occur for ignored thoughts
+                pass
 
     log.info('Creating graph entities.')
     log.info('Creating {} nodes.'.format(len(nodes)))
