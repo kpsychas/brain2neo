@@ -20,6 +20,7 @@ def chunks(l, n):
     for i in xrange(0, len(l), n):
         yield l[i:i+n]
 
+
 def create_entities(graph, entities):
     entities_v = entities.values()
 
@@ -31,11 +32,13 @@ def create_entities(graph, entities):
         s += batch_size
         graph.create(*entities_batch)
 
+
 def updateType(id1, id2, types, nodes):
     if id1 in types and id2 in nodes:
         nodes[id2].labels.add(types[id1])
     elif id2 in types and id1 in nodes:
         nodes[id1].labels.add(types[id2])
+
 
 def ignore(forgotten, accessControlType, cfg):
     # ignore forgotten thoughts or private thoughts if configuration
@@ -46,6 +49,7 @@ def ignore(forgotten, accessControlType, cfg):
     return (forgotten and ignore_forgotten) \
         or (accessControlType == '1' and ignore_private)
 
+
 def tree_braindir(direction):
     if direction == '1':
         return 'parent_to_child'
@@ -53,6 +57,7 @@ def tree_braindir(direction):
         return 'child_to_parent'
     else:
         return 'sibling'
+
 
 def linkname(h, name, upper_linknames):
     if upper_linknames:
@@ -64,30 +69,37 @@ def linkname(h, name, upper_linknames):
 def is_treelink(direction):
     return direction == '1' or direction == '2'
 
+
 def is_siblinglink(direction):
     return direction == '3'
 
+
 def is_backwardlink(isBackward):
     return isBackward == '1'
+
 
 def is_directedlink(strength):
     # if 2 link can be traversed both ways in the Brain,
     # but not when 3 (in Neo4j there is no difference)
     return strength == '2' or strength == '3'
 
+
 def is_2waymode(siblmode):
     return siblmode == '2way'
 
-def is_linktype(isType):
-    return isType == '1'
 
-def getGraph(neo4j_uri):
+def is_linktype(is_type):
+    return is_type == '1'
+
+
+def get_graph(neo4j_uri):
     if neo4j_uri != '':
         return Graph(neo4j_uri)
     else:
         return Graph()
 
-def getCypher(graph):
+
+def get_cypher(graph):
     try:
         # TODO in case there is an active connection during the lifetime of
         # this object better close it after first query
@@ -100,12 +112,14 @@ def getCypher(graph):
         log.error('If you use default user and password, try changing them')
         app_exit(1)
 
-def verifyEmpty(cypher):
+
+def verify_empty(cypher):
     log.info('Verifying provided database is empty.')
     results = cypher.execute("MATCH (n) RETURN n IS NULL AS isEmpty LIMIT 1;")
     if results.one is not None:
         log.warn('Provided database graph is not empty. Choose another one.')
         app_exit(0)
+
 
 def store2neo(root, cfg):
     neo4j_uri = cfg['Neo4j']['neo4j_uri']
@@ -116,11 +130,11 @@ def store2neo(root, cfg):
     upper_linknames = cfg['Convert']['upper_linknames']
 
     # Creates a py2neo Graph object (does not connect to db yet)
-    graph = getGraph(neo4j_uri)
+    graph = get_graph(neo4j_uri)
 
-    cypher = getCypher(graph)
+    cypher = get_cypher(graph)
 
-    verifyEmpty(cypher)
+    verify_empty(cypher)
 
     thoughts = root.find('Thoughts').findall('Thought')
     # use to convert HTML to text, used for support of non-ascii characters
@@ -135,7 +149,7 @@ def store2neo(root, cfg):
         name = thought.find('name').text
         guid = thought.find('guid').text
 
-        isType = thought.find('isType').text
+        is_type = thought.find('isType').text
         forgotten = thought.find('forgottenDateTime') is not None
         accessControlType = thought.find('accessControlType').text
 
@@ -148,7 +162,7 @@ def store2neo(root, cfg):
                           format(name, type(name), len(name)))
                 raise
 
-            if isType != '0':
+            if is_type != '0':
                 types[guid] = name
             else:
                 nodes[guid] = Node(name=name)
@@ -174,33 +188,33 @@ def store2neo(root, cfg):
 
     log.info('Parsing Link Types.')
     for link in links:
-        isType = link.find('isType').text
+        is_type = link.find('isType').text
         guid = link.find('guid').text
         name = link.find('name').text
 
-        if is_linktype(isType):
+        if is_linktype(is_type):
             linktypes[guid] = linkname(h, name, upper_linknames)
 
     log.info('Parsing Links.')
     for link in links:
         # ignore type links
-        isType = link.find('isType').text
-        if isType == '1':
+        is_type = link.find('isType').text
+        if is_linktype(is_type):
             continue
 
         guid = link.find('guid').text
-        idA = link.find('idA').text
-        idB = link.find('idB').text
+        ida = link.find('idA').text
+        idb = link.find('idB').text
         direction = link.find('dir').text
         name = link.find('name').text
         strength = link.find('strength').text
-        linkTypeID = link.find('linkTypeID').text
+        link_typeid = link.find('linkTypeID').text
 
         # decide name
         if name is not None:
             relType = linkname(h, name, upper_linknames)
-        elif linkTypeID is not None:
-            relType = linktypes[linkTypeID]
+        elif link_typeid is not None:
+            relType = linktypes[link_typeid]
         elif is_treelink(direction):
             relType = treeneoname
         elif is_siblinglink(direction):
@@ -210,15 +224,15 @@ def store2neo(root, cfg):
         treebraindir = tree_braindir(direction)
         if is_treelink(direction):
             if treebraindir == treeneodir:
-                id1, id2 = idA, idB
+                id1, id2 = ida, idb
             else:
-                id1, id2 = idB, idA
+                id1, id2 = idb, ida
         elif is_siblinglink(direction):
             isBackward = link.find('isBackward').text
             if not is_backwardlink(isBackward):
-                id1, id2 = idA, idB
+                id1, id2 = ida, idb
             else:
-                id1, id2 = idB, idA
+                id1, id2 = idb, ida
         else:
             # dir=0 when isType is 1
             continue
@@ -349,6 +363,7 @@ def main():
         app_exit(1)
 
     store2neo(root, cfg)
+
 
 if __name__ == '__main__':
     main()
