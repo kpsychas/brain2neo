@@ -282,7 +282,7 @@ def get_cfgobj(cfgfile, cfgspecfile):
 
 
 def get_cfg(xmlfile):
-    f, ext = os.path.splitext(xmlfile)
+    f, ext_ = os.path.splitext(xmlfile)
     cfgfile = '{}.cfg'.format(f)
     cfgspecfile = resource_filename(__name__,
                                     os.path.join('spec', 'specification.cfg'))
