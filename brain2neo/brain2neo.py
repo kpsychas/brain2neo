@@ -37,9 +37,6 @@ def updateType(id1, id2, types, nodes):
     elif id2 in types and id1 in nodes:
         nodes[id1].labels.add(types[id2])
 
-def updateRelationship(id1, relType, id2, guid, nodes, relationships):
-
-
 def ignore(forgotten, accessControlType, cfg):
     # ignore forgotten thoughts or private thoughts if configuration
     # requires it
