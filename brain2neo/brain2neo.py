@@ -78,8 +78,8 @@ def is_siblinglink(direction):
     return direction == '3'
 
 
-def is_backwardlink(isBackward):
-    return isBackward == '1'
+def is_backwardlink(is_backward):
+    return is_backward == '1'
 
 
 def is_directedlink(strength):
@@ -94,6 +94,11 @@ def is_2waymode(siblmode):
 
 def is_linktype(is_type):
     return is_type == '1'
+
+
+def is_thoughttype(is_type):
+    # 1 type, 3 label, 2?
+    return is_type != '0'
 
 
 def get_graph(neo4j_uri):
@@ -125,28 +130,23 @@ def verify_empty(cypher):
         app_exit(0)
 
 
-def store2neo(root, cfg):
-    neo4j_uri = cfg['Neo4j']['neo4j_uri']
-    treeneodir = cfg['Convert']['tree_neodir']
-    treeneoname = cfg['Convert']['tree_neoname']
-    siblneoname = cfg['Convert']['sibl_neoname']
-    siblmode = cfg['Convert']['sibl_mode']
-    upper_linknames = cfg['Convert']['upper_linknames']
+def parse_thoughts(thoughts, nodes, types, cfg):
+    # ignored thought attributes
+    # --------------------------------------------------------------------------
+    # | name                        | explanation                              |
+    # --------------------------------------------------------------------------
+    # | label                       | Non empty for types and labels,          |
+    # |                             | same as name                             |
+    # | creationDateTime            | timestamp                                |
+    # | realModificationDateTime    | timestamp                                |
+    # | displayModificationDateTime | timestamp                                |
+    # | activationDateTime          | timestamp                                |
+    # | linksModificationDateTime   | timestamp                                |
+    # | color                       | color of thought in the Brain            |
+    # --------------------------------------------------------------------------
 
-    # Creates a py2neo Graph object (does not connect to db yet)
-    graph = get_graph(neo4j_uri)
-
-    cypher = get_cypher(graph)
-
-    verify_empty(cypher)
-
-    thoughts = root.find('Thoughts').findall('Thought')
     # use to convert HTML to text, used for support of non-ascii characters
     h = HTMLParser.HTMLParser()
-    # nodes is a dictionary of Node values with keys guid values
-    nodes = {}
-    # types is a dictionary of thought type names with keys guid values
-    types = {}
 
     log.info('Parsing Thoughts.')
     for thought in thoughts:
@@ -155,10 +155,10 @@ def store2neo(root, cfg):
 
         is_type = thought.find('isType').text
         forgotten = thought.find('forgottenDateTime') is not None
-        accessControlType = thought.find('accessControlType').text
+        accesscontrol_type = thought.find('accessControlType').text
 
         # ignore forgotten thoughts
-        if not ignore(forgotten, accessControlType, cfg):
+        if not ignore(forgotten, accesscontrol_type, cfg):
             try:
                 name = h.unescape(name)
             except:
@@ -166,17 +166,13 @@ def store2neo(root, cfg):
                           format(name, type(name), len(name)))
                 raise
 
-            if is_type != '0':
+            if is_thoughttype(is_type):
                 types[guid] = name
             else:
                 nodes[guid] = Node(name=name)
 
-    links = root.find('Links').findall('Link')
-    # relationships is a dictionary of Relationship values with keys guid values
-    relationships = {}
-    # linktypes is a dictionary of link type names with keys guid values
-    linktypes = {}
 
+def parse_links(links, relationships, linktypes, nodes, types, cfg):
     # ignored link attributes
     # --------------------------------------------------------------------------
     # | name                 | explanation                                     |
@@ -189,6 +185,14 @@ def store2neo(root, cfg):
     # | thickness            | ? (0 by default)                                |
     # | meaning              | 2 if link between labels, 1 otherwise           |
     # --------------------------------------------------------------------------
+    treeneodir = cfg['Convert']['tree_neodir']
+    treeneoname = cfg['Convert']['tree_neoname']
+    siblneoname = cfg['Convert']['sibl_neoname']
+    siblmode = cfg['Convert']['sibl_mode']
+    upper_linknames = cfg['Convert']['upper_linknames']
+
+    # use to convert HTML to text, used for support of non-ascii characters
+    h = HTMLParser.HTMLParser()
 
     log.info('Parsing Link Types.')
     for link in links:
@@ -257,6 +261,33 @@ def store2neo(root, cfg):
             except KeyError:
                 # might occur for ignored thoughts
                 pass
+
+
+def store2neo(root, cfg):
+    neo4j_uri = cfg['Neo4j']['neo4j_uri']
+
+    # Creates a py2neo Graph object (does not connect to db yet)
+    graph = get_graph(neo4j_uri)
+
+    cypher = get_cypher(graph)
+
+    verify_empty(cypher)
+
+    thoughts = root.find('Thoughts').findall('Thought')
+    # nodes is a dictionary of Node values with keys guid values
+    nodes = {}
+    # types is a dictionary of thought type names with keys guid values
+    types = {}
+
+    parse_thoughts(thoughts, nodes, types, cfg)
+
+    links = root.find('Links').findall('Link')
+    # relationships is a dictionary of Relationship values with keys guid values
+    relationships = {}
+    # linktypes is a dictionary of link type names with keys guid values
+    linktypes = {}
+
+    parse_links(links, relationships, linktypes, nodes, types, cfg)
 
     log.info('Creating graph entities.')
     log.info('Creating {} nodes.'.format(len(nodes)))
