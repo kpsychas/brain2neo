@@ -108,6 +108,10 @@ def store2neo(root, cfg):
     except SocketError as e:
         log.error('SocketError, there is likely no active connection to database.')
         app_exit(1)
+    except GraphError as e:
+        log.error('GraphError: {}'.format(e.message))
+        log.error('If you use default user and password, try changing them')
+        app_exit(1)
 
     log.info('Verifying provided database is empty.')
     results = cypher.execute("MATCH (n) RETURN n IS NULL AS isEmpty LIMIT 1;")

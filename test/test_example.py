@@ -9,7 +9,6 @@ class ExampleTestCase(TestCase):
     def setUp(self):
         xmlfile = "example.xml"
         self.cfg = get_cfg(xmlfile)
-        self.cfg['Neo4j']['neo4j_uri'] = 'http://neo4j:neo4j@localhost:7474/db/data/'
         self.root = get_root(xmlfile)
 
     def test_example(self):
