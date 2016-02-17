@@ -20,7 +20,8 @@ before_install:
     - neo4j-community-$NEO4J_VERSION/bin/neo4j start
 
 script:
-  - python test/test_all.py
+  - cd test
+  - python test_all.py
 
 notifications:
   email: false
