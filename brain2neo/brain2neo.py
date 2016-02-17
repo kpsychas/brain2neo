@@ -33,21 +33,25 @@ def create_entities(graph, entities):
         graph.create(*entities_batch)
 
 
-def updateType(id1, id2, types, nodes):
+def update_type(id1, id2, types, nodes):
     if id1 in types and id2 in nodes:
         nodes[id2].labels.add(types[id1])
     elif id2 in types and id1 in nodes:
         nodes[id1].labels.add(types[id2])
 
 
-def ignore(forgotten, accessControlType, cfg):
+def is_private(accesscontrol_type):
+    return accesscontrol_type == '1'
+
+
+def ignore(forgotten, accesscontrol_type, cfg):
     # ignore forgotten thoughts or private thoughts if configuration
     # requires it
     ignore_private = cfg['Convert']['ignore_private']
     ignore_forgotten = cfg['Convert']['ignore_forgotten']
 
     return (forgotten and ignore_forgotten) \
-        or (accessControlType == '1' and ignore_private)
+        or (is_private(accesscontrol_type) and ignore_private)
 
 
 def tree_braindir(direction):
@@ -212,13 +216,13 @@ def store2neo(root, cfg):
 
         # decide name
         if name is not None:
-            relType = linkname(h, name, upper_linknames)
+            rel_type = linkname(h, name, upper_linknames)
         elif link_typeid is not None:
-            relType = linktypes[link_typeid]
+            rel_type = linktypes[link_typeid]
         elif is_treelink(direction):
-            relType = treeneoname
+            rel_type = treeneoname
         elif is_siblinglink(direction):
-            relType = siblneoname
+            rel_type = siblneoname
 
         # decide direction
         treebraindir = tree_braindir(direction)
@@ -228,8 +232,8 @@ def store2neo(root, cfg):
             else:
                 id1, id2 = idb, ida
         elif is_siblinglink(direction):
-            isBackward = link.find('isBackward').text
-            if not is_backwardlink(isBackward):
+            is_backward = link.find('isBackward').text
+            if not is_backwardlink(is_backward):
                 id1, id2 = ida, idb
             else:
                 id1, id2 = idb, ida
@@ -238,16 +242,17 @@ def store2neo(root, cfg):
             continue
 
         try:
-            relationships[guid] = Relationship(nodes[id1], relType, nodes[id2])
+            relationships[guid] = Relationship(nodes[id1], rel_type,
+                                               nodes[id2])
         except KeyError:
             # might occur for ignored thoughts or connections with types
-            updateType(id1, id2, types, nodes)
+            update_type(id1, id2, types, nodes)
 
         if (is_siblinglink(direction) and not is_directedlink(strength) and
                 is_2waymode(siblmode)):
             backguid = '{}-B'.format(guid)
             try:
-                relationships[backguid] = Relationship(nodes[id2], relType,
+                relationships[backguid] = Relationship(nodes[id2], rel_type,
                                                        nodes[id1])
             except KeyError:
                 # might occur for ignored thoughts
@@ -296,7 +301,8 @@ def get_cfgobj(cfgfile, cfgspecfile):
 
 
 def get_cfg(xmlfile):
-    f, ext_ = os.path.splitext(xmlfile)
+    # get name, ignore extension
+    f, _ = os.path.splitext(xmlfile)
     cfgfile = '{}.cfg'.format(f)
     cfgspecfile = resource_filename(__name__,
                                     os.path.join('spec', 'specification.cfg'))
