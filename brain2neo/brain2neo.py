@@ -104,7 +104,9 @@ def is_thoughttype(is_type):
     return is_type != '0'
 
 
-def get_graph(neo4j_uri):
+def get_graph(cfg):
+    neo4j_uri = cfg['Neo4j']['neo4j_uri']
+
     if neo4j_uri != '':
         return Graph(neo4j_uri)
     else:
@@ -125,10 +127,15 @@ def get_cypher(graph):
         app_exit(1)
 
 
-def verify_empty(cypher):
+def is_empty(cypher):
     log.info('Verifying provided database is empty.')
     results = cypher.execute("MATCH (n) RETURN n IS NULL AS isEmpty LIMIT 1;")
-    if results.one is not None:
+
+    return results.one is None
+
+
+def verify_empty(cypher):
+    if not is_empty(cypher):
         log.warn('Provided database graph is not empty. Choose another one.')
         app_exit(0)
 
@@ -252,21 +259,21 @@ def parse_regularlinks(links, relationships, linktypes, nodes, types, cfg):
         if is_linktype(is_type):
             continue
 
-        guid = link.find('guid').text
-        ida = link.find('idA').text
-        idb = link.find('idB').text
-        strength = link.find('strength').text
-
         # decide relation name
         rel_type = get_relationname(link, linktypes, upper_linknames,
                                     treeneoname, siblneoname)
 
+        id1 = link.find('idA').text
+        id2 = link.find('idB').text
+
         # decide order of connected thoughts
-        id1, id2 = get_order(ida, idb, link, treeneodir)
+        id1, id2 = get_order(id1, id2, link, treeneodir)
 
         if id1 is None:
             continue
 
+        guid = link.find('guid').text
+        strength = link.find('strength').text
         try:
             relationships[guid] = Relationship(nodes[id1], rel_type,
                                                nodes[id2])
@@ -286,10 +293,8 @@ def parse_regularlinks(links, relationships, linktypes, nodes, types, cfg):
 
 
 def store2neo(root, cfg):
-    neo4j_uri = cfg['Neo4j']['neo4j_uri']
-
     # Creates a py2neo Graph object (does not connect to db yet)
-    graph = get_graph(neo4j_uri)
+    graph = get_graph(cfg)
 
     cypher = get_cypher(graph)
 

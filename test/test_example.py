@@ -2,17 +2,27 @@
 
 from unittest import TestCase, TestLoader, TestSuite
 
-from brain2neo.brain2neo import get_cfg, get_root, store2neo
+import brain2neo.brain2neo as b2n
 
 
 class ExampleTestCase(TestCase):
     def setUp(self):
         xmlfile = "example.xml"
-        self.cfg = get_cfg(xmlfile)
-        self.root = get_root(xmlfile)
+        cfg = b2n.get_cfg(xmlfile)
+        root = b2n.get_root(xmlfile)
 
-    def test_example(self):
-        store2neo(self.root, self.cfg)
+        graph = b2n.get_graph(cfg)
+        self.cypher = b2n.get_cypher(graph)
+
+        # empty graph
+        self.cypher.execute('MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE n,r')
+        self.assertTrue(b2n.is_empty(self.cypher))
+
+        b2n.store2neo(root, cfg)
+
+    def test_nonempty(self):
+        self.assertFalse(b2n.is_empty(self.cypher))
+
 
 def suite():
     suite = TestSuite()
