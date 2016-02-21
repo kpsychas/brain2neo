@@ -187,6 +187,44 @@ def parse_linktypes(links, linktypes, cfg):
             linktypes[guid] = linkname(h, name, upper_linknames)
 
 
+def get_relationname(link, linktypes, upper_linknames, treeneoname,
+                     siblneoname):
+    name = link.find('name').text
+    link_typeid = link.find('linkTypeID').text
+    direction = link.find('dir').text
+
+    if name is not None:
+        return linkname(h, name, upper_linknames)
+    elif link_typeid is not None:
+        return linktypes[link_typeid]
+    elif is_treelink(direction):
+        return treeneoname
+    elif is_siblinglink(direction):
+        return siblneoname
+
+
+def get_order(ida, idb, link, treeneodir):
+    direction = link.find('dir').text
+
+    treebraindir = tree_braindir(direction)
+    if is_treelink(direction):
+        # is configured direction of tree links the same as the direction
+        # of particular link
+        if treebraindir == treeneodir:
+            return ida, idb
+        else:
+            return idb, ida
+    elif is_siblinglink(direction):
+        is_backward = link.find('isBackward').text
+        if not is_backwardlink(is_backward):
+            return ida, idb
+        else:
+            return idb, ida
+    else:
+        # dir=0 when isType is 1
+        return None, None
+
+
 def parse_regularlinks(links, relationships, linktypes, nodes, types, cfg):
     # ignored link attributes
     # --------------------------------------------------------------------------
@@ -217,36 +255,16 @@ def parse_regularlinks(links, relationships, linktypes, nodes, types, cfg):
         guid = link.find('guid').text
         ida = link.find('idA').text
         idb = link.find('idB').text
-        direction = link.find('dir').text
-        name = link.find('name').text
         strength = link.find('strength').text
-        link_typeid = link.find('linkTypeID').text
 
-        # decide name
-        if name is not None:
-            rel_type = linkname(h, name, upper_linknames)
-        elif link_typeid is not None:
-            rel_type = linktypes[link_typeid]
-        elif is_treelink(direction):
-            rel_type = treeneoname
-        elif is_siblinglink(direction):
-            rel_type = siblneoname
+        # decide relation name
+        rel_type = get_relationname(link, linktypes, upper_linknames,
+                                    treeneoname, siblneoname)
 
-        # decide direction
-        treebraindir = tree_braindir(direction)
-        if is_treelink(direction):
-            if treebraindir == treeneodir:
-                id1, id2 = ida, idb
-            else:
-                id1, id2 = idb, ida
-        elif is_siblinglink(direction):
-            is_backward = link.find('isBackward').text
-            if not is_backwardlink(is_backward):
-                id1, id2 = ida, idb
-            else:
-                id1, id2 = idb, ida
-        else:
-            # dir=0 when isType is 1
+        # decide order of connected thoughts
+        id1, id2 = get_order(ida, idb, link, treeneodir)
+
+        if id1 is None:
             continue
 
         try:
@@ -256,12 +274,12 @@ def parse_regularlinks(links, relationships, linktypes, nodes, types, cfg):
             # might occur for ignored thoughts or connections with types
             update_type(id1, id2, types, nodes)
 
+        direction = link.find('dir').text
         if (is_siblinglink(direction) and not is_directedlink(strength) and
                 is_2waymode(siblmode)):
-            backguid = '{}-B'.format(guid)
             try:
-                relationships[backguid] = Relationship(nodes[id2], rel_type,
-                                                       nodes[id1])
+                relationships[guid+'-B'] = Relationship(nodes[id2], rel_type,
+                                                        nodes[id1])
             except KeyError:
                 # might occur for ignored thoughts
                 pass
