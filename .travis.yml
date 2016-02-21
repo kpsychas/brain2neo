@@ -5,6 +5,7 @@ python:
 
 install:
   - pip install -r requirements.txt
+  - pip install coveralls
   - python setup.py install
 
 env:
@@ -23,6 +24,7 @@ before_install:
 script:
   - cd test
   - python test_all.py
+  - coverage run --source=brain2neo test_all.py
 
 notifications:
   email: false
@@ -30,3 +32,6 @@ notifications:
 branches:
   only:
     - master
+
+after_success:
+  - coveralls
