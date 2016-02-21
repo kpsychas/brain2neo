@@ -14,6 +14,9 @@ from validate import Validator
 
 import HTMLParser
 
+# use to convert HTML to text, used for support of non-ascii characters
+h = HTMLParser.HTMLParser()
+
 
 def chunks(l, n):
     """ Yield successive n-sized chunks from l. """
@@ -145,9 +148,6 @@ def parse_thoughts(thoughts, nodes, types, cfg):
     # | color                       | color of thought in the Brain            |
     # --------------------------------------------------------------------------
 
-    # use to convert HTML to text, used for support of non-ascii characters
-    h = HTMLParser.HTMLParser()
-
     log.info('Parsing Thoughts.')
     for thought in thoughts:
         name = thought.find('name').text
@@ -172,7 +172,22 @@ def parse_thoughts(thoughts, nodes, types, cfg):
                 nodes[guid] = Node(name=name)
 
 
-def parse_links(links, relationships, linktypes, nodes, types, cfg):
+def parse_linktypes(links, linktypes, cfg):
+    upper_linknames = cfg['Convert']['upper_linknames']
+
+    h = HTMLParser.HTMLParser()
+
+    log.info('Parsing Link Types.')
+    for link in links:
+        is_type = link.find('isType').text
+        guid = link.find('guid').text
+        name = link.find('name').text
+
+        if is_linktype(is_type):
+            linktypes[guid] = linkname(h, name, upper_linknames)
+
+
+def parse_regularlinks(links, relationships, linktypes, nodes, types, cfg):
     # ignored link attributes
     # --------------------------------------------------------------------------
     # | name                 | explanation                                     |
@@ -185,25 +200,14 @@ def parse_links(links, relationships, linktypes, nodes, types, cfg):
     # | thickness            | ? (0 by default)                                |
     # | meaning              | 2 if link between labels, 1 otherwise           |
     # --------------------------------------------------------------------------
+
+    upper_linknames = cfg['Convert']['upper_linknames']
     treeneodir = cfg['Convert']['tree_neodir']
     treeneoname = cfg['Convert']['tree_neoname']
     siblneoname = cfg['Convert']['sibl_neoname']
     siblmode = cfg['Convert']['sibl_mode']
-    upper_linknames = cfg['Convert']['upper_linknames']
 
-    # use to convert HTML to text, used for support of non-ascii characters
-    h = HTMLParser.HTMLParser()
-
-    log.info('Parsing Link Types.')
-    for link in links:
-        is_type = link.find('isType').text
-        guid = link.find('guid').text
-        name = link.find('name').text
-
-        if is_linktype(is_type):
-            linktypes[guid] = linkname(h, name, upper_linknames)
-
-    log.info('Parsing Links.')
+    log.info('Parsing Regular Links.')
     for link in links:
         # ignore type links
         is_type = link.find('isType').text
@@ -287,7 +291,9 @@ def store2neo(root, cfg):
     # linktypes is a dictionary of link type names with keys guid values
     linktypes = {}
 
-    parse_links(links, relationships, linktypes, nodes, types, cfg)
+    parse_linktypes(links, linktypes, cfg)
+
+    parse_regularlinks(links, relationships, linktypes, nodes, types, cfg)
 
     log.info('Creating graph entities.')
     log.info('Creating {} nodes.'.format(len(nodes)))
