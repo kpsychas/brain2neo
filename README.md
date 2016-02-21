@@ -1,6 +1,7 @@
 [![Build Status](https://travis-ci.org/kpsychas/brain2neo.svg?branch=master)](https://travis-ci.org/kpsychas/brain2neo)
 [![Code Health](https://landscape.io/github/kpsychas/brain2neo/master/landscape.svg?style=flat)](https://landscape.io/github/kpsychas/brain2neo/master)
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/kpsychas/brain2neo/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/kpsychas/brain2neo/?branch=master)
+[![Coverage Status](https://coveralls.io/repos/github/kpsychas/brain2neo/badge.svg?branch=master)](https://coveralls.io/github/kpsychas/brain2neo?branch=master)
 
 About
 -----
@@ -23,8 +24,8 @@ Quick Demo
 
     	neo4j_uri = http://localhost:7474/db/data/
 
-	to respective URI of your database (should be empty initially). 
-	Include any credentials in URI like what is described in 
+	to respective URI of your database (should be empty initially).
+	Include any credentials in URI like what is described in
 	[py2neo documentation](http://py2neo.org/2.0/essentials.html)
 
 2. Run your database server
