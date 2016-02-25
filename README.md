@@ -2,6 +2,7 @@
 [![Code Health](https://landscape.io/github/kpsychas/brain2neo/master/landscape.svg?style=flat)](https://landscape.io/github/kpsychas/brain2neo/master)
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/kpsychas/brain2neo/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/kpsychas/brain2neo/?branch=master)
 [![Coverage Status](https://coveralls.io/repos/github/kpsychas/brain2neo/badge.svg?branch=master)](https://coveralls.io/github/kpsychas/brain2neo?branch=master)
+[![Requirements Status](https://requires.io/github/kpsychas/brain2neo/requirements.svg?tag=v1.0)](https://requires.io/github/kpsychas/brain2neo/requirements/?tag=v1.0)
 
 About
 -----
