@@ -3,3 +3,4 @@ TODO.txt
 brain2neo.egg-info/
 build/
 dist/
+test/.coverage

@@ -1,6 +1,23 @@
+* The latest development status can be monitored through the badges of README
+* file which link to external tools, if the build
+* is stable it is most likely better to use the developement version
+
+Version 1.1
+-----------
+More configuration options
+
+-custom naming of unnamed links
+-choose direction of tree links
+-choose if undirected links in theBrain
+will be converted to 2 way links or not
+(tree links are excluded from this)
+-optional conversion of forgotten or private thoughts
+-optional capitalization of link names
+-added logging and control of output verbosity
+
+
 Version 1.0
 -----------
-
 Implemented basic functionality of converting thoughts and links to nodes
 and relationships.
 
