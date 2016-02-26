@@ -140,7 +140,12 @@ def verify_empty(cypher):
         app_exit(0)
 
 
-def parse_thoughts(thoughts, nodes, types, cfg):
+#TODO
+def parse_attachments(root, nodes):
+    attachments = root.find('Attachments').findall('Attachment')
+
+
+def parse_thoughts(root, cfg):
     # ignored thought attributes
     # --------------------------------------------------------------------------
     # | name                        | explanation                              |
@@ -154,6 +159,12 @@ def parse_thoughts(thoughts, nodes, types, cfg):
     # | linksModificationDateTime   | timestamp                                |
     # | color                       | color of thought in the Brain            |
     # --------------------------------------------------------------------------
+
+    thoughts = root.find('Thoughts').findall('Thought')
+    # nodes is a dictionary of Node values with keys guid values
+    nodes = {}
+    # types is a dictionary of thought type names with keys guid values
+    types = {}
 
     log.info('Parsing Thoughts.')
     for thought in thoughts:
@@ -178,8 +189,15 @@ def parse_thoughts(thoughts, nodes, types, cfg):
             else:
                 nodes[guid] = Node(name=name)
 
+    return nodes, types
 
-def parse_linktypes(links, linktypes, cfg):
+
+def parse_linktypes(root, cfg):
+    links = root.find('Links').findall('Link')
+
+    # linktypes is a dictionary of link type names with keys guid values
+    linktypes = {}
+
     upper_linknames = cfg['Convert']['upper_linknames']
 
     h = HTMLParser.HTMLParser()
@@ -192,6 +210,8 @@ def parse_linktypes(links, linktypes, cfg):
 
         if is_linktype(is_type):
             linktypes[guid] = linkname(h, name, upper_linknames)
+
+    return linktypes
 
 
 def get_relationname(link, linktypes, upper_linknames, treeneoname,
@@ -232,7 +252,7 @@ def get_order(ida, idb, link, treeneodir):
         return None, None
 
 
-def parse_regularlinks(links, relationships, linktypes, nodes, types, cfg):
+def parse_regularlinks(root, linktypes, nodes, types, cfg):
     # ignored link attributes
     # --------------------------------------------------------------------------
     # | name                 | explanation                                     |
@@ -245,6 +265,11 @@ def parse_regularlinks(links, relationships, linktypes, nodes, types, cfg):
     # | thickness            | ? (0 by default)                                |
     # | meaning              | 2 if link between labels, 1 otherwise           |
     # --------------------------------------------------------------------------
+
+    links = root.find('Links').findall('Link')
+
+    # relationships is a dictionary of Relationship values with keys guid values
+    relationships = {}
 
     upper_linknames = cfg['Convert']['upper_linknames']
     treeneodir = cfg['Convert']['tree_neodir']
@@ -291,6 +316,8 @@ def parse_regularlinks(links, relationships, linktypes, nodes, types, cfg):
                 # might occur for ignored thoughts
                 pass
 
+    return relationships
+
 
 def store2neo(root, cfg):
     # Creates a py2neo Graph object (does not connect to db yet)
@@ -300,23 +327,13 @@ def store2neo(root, cfg):
 
     verify_empty(cypher)
 
-    thoughts = root.find('Thoughts').findall('Thought')
-    # nodes is a dictionary of Node values with keys guid values
-    nodes = {}
-    # types is a dictionary of thought type names with keys guid values
-    types = {}
+    nodes, types = parse_thoughts(root, cfg)
 
-    parse_thoughts(thoughts, nodes, types, cfg)
+    parse_attachments(root, nodes)
 
-    links = root.find('Links').findall('Link')
-    # relationships is a dictionary of Relationship values with keys guid values
-    relationships = {}
-    # linktypes is a dictionary of link type names with keys guid values
-    linktypes = {}
+    linktypes = parse_linktypes(root, cfg)
 
-    parse_linktypes(links, linktypes, cfg)
-
-    parse_regularlinks(links, relationships, linktypes, nodes, types, cfg)
+    relationships = parse_regularlinks(root, linktypes, nodes, types, cfg)
 
     log.info('Creating graph entities.')
     log.info('Creating {} nodes.'.format(len(nodes)))
