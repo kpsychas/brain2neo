@@ -291,6 +291,8 @@ def get_relationname(link, linktypes, cfg):
 def get_order(ida, idb, link, cfg):
     treeneodir = cfg['Convert']['tree_neodir']
 
+    ida = link.find('idA').text
+    idb = link.find('idB').text
     direction = link.find('dir').text
 
     if is_treedir(direction):
@@ -350,11 +352,8 @@ def parse_regularlinks(root, linktypes, nodes, types, cfg):
         # decide relation name
         rel_type = get_relationname(link, linktypes, cfg)
 
-        id1 = link.find('idA').text
-        id2 = link.find('idB').text
-
         # decide order of connected thoughts
-        id1, id2 = get_order(id1, id2, link, cfg)
+        id1, id2 = get_order(link, cfg)
 
         if id1 is None:
             continue
