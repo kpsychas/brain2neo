@@ -140,24 +140,65 @@ def verify_empty(cypher):
         app_exit(0)
 
 
-#TODO
+def isURL(attachmentType):
+    return attachmentType == '3'
+
+
+def isPath(attachmentType):
+    return attachmentType == '2'
+
+
 def parse_attachments(root, nodes):
+    # attachment attributes - only attributes with * are parsed
+    # --------------------------------------------------------------------------
+    # | name                 | explanation                                     |
+    # --------------------------------------------------------------------------
+    # | guid                 | unique id                                       |
+    # | AttachmentEntries    | objects with associated entry information       |
+    # | objectID*            | guid of associated thought                      |
+    # | name                 | attachment name                                 |
+    # | attachmentType*      | type of attachment (2 path, 3 URL)              |
+    # | location*            | url or path or other                            |
+    # | dataLength           | 0 for url or path attachment                    |
+    # | format               | file extension                                  |
+    # | creationDateTime     | timestamp                                       |
+    # | modificationDateTime | timestamp                                       |
+    # | deletedDateTime      | timestamp                                       |
+    # --------------------------------------------------------------------------
+
     attachments = root.find('Attachments').findall('Attachment')
+
+    log.info('Parsing Attachments.')
+    for attachment in attachments:
+        attachmentType = attachment.find('attachmentType').text
+        location = attachment.find('location').text
+        objectID = attachment.find('objectID').text
+
+        if isURL(attachmentType):
+            nodes[objectID].properties['URL'] = location
+        elif isPath(attachmentType):
+            nodes[objectID].properties['path'] = location
 
 
 def parse_thoughts(root, cfg):
-    # ignored thought attributes
+    # thought attributes - only attributes with * are parsed
     # --------------------------------------------------------------------------
     # | name                        | explanation                              |
     # --------------------------------------------------------------------------
+    # | guid*                       | unique id                                |
+    # | name*                       | thought name                             |
     # | label                       | Non empty for types and labels,          |
     # |                             | same as name                             |
     # | creationDateTime            | timestamp                                |
     # | realModificationDateTime    | timestamp                                |
     # | displayModificationDateTime | timestamp                                |
+    # | forgottenDateTime           | timestamp                                |
+    # | deletedDateTime             | timestamp                                |
     # | activationDateTime          | timestamp                                |
     # | linksModificationDateTime   | timestamp                                |
+    # | isType*                     | type of thought(not boolean)             |
     # | color                       | color of thought in the Brain            |
+    # | accessControlType*          | is thought private                       |
     # --------------------------------------------------------------------------
 
     thoughts = root.find('Thoughts').findall('Thought')
@@ -214,8 +255,12 @@ def parse_linktypes(root, cfg):
     return linktypes
 
 
-def get_relationname(link, linktypes, upper_linknames, treeneoname,
-                     siblneoname):
+def get_relationname(link, linktypes, cfg):
+
+    upper_linknames = cfg['Convert']['upper_linknames']
+    treeneoname = cfg['Convert']['tree_neoname']
+    siblneoname = cfg['Convert']['sibl_neoname']
+
     name = link.find('name').text
     link_typeid = link.find('linkTypeID').text
     direction = link.find('dir').text
@@ -230,7 +275,8 @@ def get_relationname(link, linktypes, upper_linknames, treeneoname,
         return siblneoname
 
 
-def get_order(ida, idb, link, treeneodir):
+def get_order(ida, idb, link, cfg):
+    treeneodir = cfg['Convert']['tree_neodir']
     direction = link.find('dir').text
 
     treebraindir = tree_braindir(direction)
@@ -253,17 +299,26 @@ def get_order(ida, idb, link, treeneodir):
 
 
 def parse_regularlinks(root, linktypes, nodes, types, cfg):
-    # ignored link attributes
+    # link attributes
     # --------------------------------------------------------------------------
     # | name                 | explanation                                     |
     # --------------------------------------------------------------------------
+    # | guid*                | unique id                                       |
+    # | idA*                 | guid of first thought                           |
+    # | idB*                 | guid of second thought                          |
+    # | dir*                 | direction of link (parent-child, sibling)       |
+    # | name*                | name of link                                    |
     # | labelForward         | ? (empty by default)                            |
     # | labelBackward        | ? (empty by default)                            |
     # | creationDateTime     | timestamp                                       |
     # | modificationDateTime | timestamp                                       |
+    # | deletedDateTime      | timestamp                                       |
+    # | followDateTime       | timestamp                                       |
+    # | isType*              | is link a type                                  |
     # | color                | color of link in the Brain                      |
     # | thickness            | ? (0 by default)                                |
     # | meaning              | 2 if link between labels, 1 otherwise           |
+    # | linkTypeID*          | guid of associated type  if any                 |
     # --------------------------------------------------------------------------
 
     links = root.find('Links').findall('Link')
@@ -271,10 +326,6 @@ def parse_regularlinks(root, linktypes, nodes, types, cfg):
     # relationships is a dictionary of Relationship values with keys guid values
     relationships = {}
 
-    upper_linknames = cfg['Convert']['upper_linknames']
-    treeneodir = cfg['Convert']['tree_neodir']
-    treeneoname = cfg['Convert']['tree_neoname']
-    siblneoname = cfg['Convert']['sibl_neoname']
     siblmode = cfg['Convert']['sibl_mode']
 
     log.info('Parsing Regular Links.')
@@ -285,14 +336,13 @@ def parse_regularlinks(root, linktypes, nodes, types, cfg):
             continue
 
         # decide relation name
-        rel_type = get_relationname(link, linktypes, upper_linknames,
-                                    treeneoname, siblneoname)
+        rel_type = get_relationname(link, linktypes, cfg)
 
         id1 = link.find('idA').text
         id2 = link.find('idB').text
 
         # decide order of connected thoughts
-        id1, id2 = get_order(id1, id2, link, treeneodir)
+        id1, id2 = get_order(id1, id2, link, cfg)
 
         if id1 is None:
             continue
