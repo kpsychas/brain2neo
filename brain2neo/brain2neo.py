@@ -19,7 +19,7 @@ h = HTMLParser.HTMLParser()
 
 
 def chunks(l, n):
-    """ Yield successive n-sized chunks from l. """
+    ''' Yield successive n-sized chunks from l. '''
     for i in xrange(0, len(l), n):
         yield l[i:i+n]
 
@@ -157,22 +157,24 @@ def ignore_attachments(cfg):
 
 
 def parse_attachments(root, nodes, cfg):
-    # attachment attributes - only attributes with * are parsed
-    # --------------------------------------------------------------------------
-    # | name                 | explanation                                     |
-    # --------------------------------------------------------------------------
-    # | guid                 | unique id                                       |
-    # | AttachmentEntries    | objects with associated entry information       |
-    # | objectID*            | guid of associated thought                      |
-    # | name                 | attachment name                                 |
-    # | attachmentType*      | type of attachment (2 path, 3 URL)              |
-    # | location*            | url or path or other                            |
-    # | dataLength           | 0 for url or path attachment                    |
-    # | format               | file extension                                  |
-    # | creationDateTime     | timestamp                                       |
-    # | modificationDateTime | timestamp                                       |
-    # | deletedDateTime      | timestamp                                       |
-    # --------------------------------------------------------------------------
+    '''
+    attachment attributes - only attributes with * are parsed
+    --------------------------------------------------------------------------
+    | name                 | explanation                                     |
+    --------------------------------------------------------------------------
+    | guid                 | unique id                                       |
+    | AttachmentEntries    | objects with associated entry information       |
+    | objectID*            | guid of associated thought                      |
+    | name                 | attachment name                                 |
+    | attachmentType*      | type of attachment (2 path, 3 URL)              |
+    | location*            | url or path or other                            |
+    | dataLength           | 0 for url or path attachment                    |
+    | format               | file extension                                  |
+    | creationDateTime     | timestamp                                       |
+    | modificationDateTime | timestamp                                       |
+    | deletedDateTime      | timestamp                                       |
+    --------------------------------------------------------------------------
+    '''
 
     if ignore_attachments(cfg):
         return
@@ -192,25 +194,27 @@ def parse_attachments(root, nodes, cfg):
 
 
 def parse_thoughts(root, cfg):
-    # thought attributes - only attributes with * are parsed
-    # --------------------------------------------------------------------------
-    # | name                        | explanation                              |
-    # --------------------------------------------------------------------------
-    # | guid*                       | unique id                                |
-    # | name*                       | thought name                             |
-    # | label                       | Non empty for types and labels,          |
-    # |                             | same as name                             |
-    # | creationDateTime            | timestamp                                |
-    # | realModificationDateTime    | timestamp                                |
-    # | displayModificationDateTime | timestamp                                |
-    # | forgottenDateTime           | timestamp                                |
-    # | deletedDateTime             | timestamp                                |
-    # | activationDateTime          | timestamp                                |
-    # | linksModificationDateTime   | timestamp                                |
-    # | isType*                     | type of thought(not boolean)             |
-    # | color                       | color of thought in the Brain            |
-    # | accessControlType*          | is thought private                       |
-    # --------------------------------------------------------------------------
+    '''
+    thought attributes - only attributes with * are parsed
+    --------------------------------------------------------------------------
+    | name                        | explanation                              |
+    --------------------------------------------------------------------------
+    | guid*                       | unique id                                |
+    | name*                       | thought name                             |
+    | label                       | Non empty for types and labels,          |
+    |                             | same as name                             |
+    | creationDateTime            | timestamp                                |
+    | realModificationDateTime    | timestamp                                |
+    | displayModificationDateTime | timestamp                                |
+    | forgottenDateTime           | timestamp                                |
+    | deletedDateTime             | timestamp                                |
+    | activationDateTime          | timestamp                                |
+    | linksModificationDateTime   | timestamp                                |
+    | isType*                     | type of thought(not boolean)             |
+    | color                       | color of thought in the Brain            |
+    | accessControlType*          | is thought private                       |
+    --------------------------------------------------------------------------
+    '''
 
     thoughts = root.find('Thoughts').findall('Thought')
     # nodes is a dictionary of Node values with keys guid values
@@ -303,27 +307,29 @@ def get_order(ida, idb, link, cfg):
 
 
 def parse_regularlinks(root, linktypes, nodes, types, cfg):
-    # link attributes
-    # --------------------------------------------------------------------------
-    # | name                 | explanation                                     |
-    # --------------------------------------------------------------------------
-    # | guid*                | unique id                                       |
-    # | idA*                 | guid of first thought                           |
-    # | idB*                 | guid of second thought                          |
-    # | dir*                 | direction of link (parent-child, sibling)       |
-    # | name*                | name of link                                    |
-    # | labelForward         | ? (empty by default)                            |
-    # | labelBackward        | ? (empty by default)                            |
-    # | creationDateTime     | timestamp                                       |
-    # | modificationDateTime | timestamp                                       |
-    # | deletedDateTime      | timestamp                                       |
-    # | followDateTime       | timestamp                                       |
-    # | isType*              | is link a type                                  |
-    # | color                | color of link in the Brain                      |
-    # | thickness            | ? (0 by default)                                |
-    # | meaning              | 2 if link between labels, 1 otherwise           |
-    # | linkTypeID*          | guid of associated type  if any                 |
-    # --------------------------------------------------------------------------
+    '''
+    link attributes - only attributes with * are parsed
+    --------------------------------------------------------------------------
+    | name                 | explanation                                     |
+    --------------------------------------------------------------------------
+    | guid*                | unique id                                       |
+    | idA*                 | guid of first thought                           |
+    | idB*                 | guid of second thought                          |
+    | dir*                 | direction of link (parent-child, sibling)       |
+    | name*                | name of link                                    |
+    | labelForward         | ? (empty by default)                            |
+    | labelBackward        | ? (empty by default)                            |
+    | creationDateTime     | timestamp                                       |
+    | modificationDateTime | timestamp                                       |
+    | deletedDateTime      | timestamp                                       |
+    | followDateTime       | timestamp                                       |
+    | isType*              | is link a type                                  |
+    | color                | color of link in the Brain                      |
+    | thickness            | ? (0 by default)                                |
+    | meaning              | 2 if link between labels, 1 otherwise           |
+    | linkTypeID*          | guid of associated type  if any                 |
+    --------------------------------------------------------------------------
+    '''
 
     links = root.find('Links').findall('Link')
 
