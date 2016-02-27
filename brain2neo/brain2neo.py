@@ -95,6 +95,10 @@ def is_directedlink(link):
     return strength == '2' or strength == '3'
 
 
+def is_2waylink(link):
+    direction = link.find('dir').text
+    return is_siblingdir(direction) and not is_directedlink(link)
+
 def is_2waymode(siblmode):
     return siblmode == '2way'
 
@@ -302,8 +306,7 @@ def get_order(ida, idb, link, cfg):
         else:
             return idb, ida
     else:
-        # dir=0 when isType is 1
-        return None, None
+        return None, None  # link is type
 
 
 def parse_regularlinks(root, linktypes, nodes, types, cfg):
@@ -336,7 +339,7 @@ def parse_regularlinks(root, linktypes, nodes, types, cfg):
     # relationships is a dictionary of Relationship values with keys guid values
     relationships = {}
 
-    is_2way = is_2waymode(cfg['Convert']['sibl_mode'])
+    mode2way = is_2waymode(cfg['Convert']['sibl_mode'])
 
     log.info('Parsing Regular Links.')
     for link in links:
@@ -360,19 +363,12 @@ def parse_regularlinks(root, linktypes, nodes, types, cfg):
         try:
             relationships[guid] = Relationship(nodes[id1], rel_type,
                                                nodes[id2])
+            if (is_2waylink(link) and mode2way):
+                relationships[guid+'-B'] = Relationship(nodes[id2], rel_type,
+                                                        nodes[id1])
         except KeyError:
             # might occur for ignored thoughts or connections with types
             update_type(id1, id2, types, nodes)
-
-        direction = link.find('dir').text
-        if (is_siblingdir(direction) and not is_directedlink(link) and
-                is_2way):
-            try:
-                relationships[guid+'-B'] = Relationship(nodes[id2], rel_type,
-                                                        nodes[id1])
-            except KeyError:
-                # might occur for ignored thoughts
-                pass
 
     return relationships
 
