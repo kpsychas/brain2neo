@@ -99,6 +99,7 @@ def is_2waylink(link):
     direction = link.find('dir').text
     return is_siblingdir(direction) and not is_directedlink(link)
 
+
 def is_2waymode(siblmode):
     return siblmode == '2way'
 
@@ -288,7 +289,7 @@ def get_relationname(link, linktypes, cfg):
         return siblneoname
 
 
-def get_order(ida, idb, link, cfg):
+def get_order(link, cfg):
     treeneodir = cfg['Convert']['tree_neodir']
 
     ida = link.find('idA').text
@@ -354,9 +355,6 @@ def parse_regularlinks(root, linktypes, nodes, types, cfg):
 
         # decide order of connected thoughts
         id1, id2 = get_order(link, cfg)
-
-        if id1 is None:
-            continue
 
         guid = link.find('guid').text
         try:
