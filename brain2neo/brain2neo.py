@@ -152,7 +152,11 @@ def is_path(attachment_type):
     return attachment_type == '2'
 
 
-def parse_attachments(root, nodes):
+def ignore_attachments(cfg):
+    return cfg['Convert']['ignore_attachments']
+
+
+def parse_attachments(root, nodes, cfg):
     # attachment attributes - only attributes with * are parsed
     # --------------------------------------------------------------------------
     # | name                 | explanation                                     |
@@ -169,6 +173,9 @@ def parse_attachments(root, nodes):
     # | modificationDateTime | timestamp                                       |
     # | deletedDateTime      | timestamp                                       |
     # --------------------------------------------------------------------------
+
+    if ignore_attachments(cfg):
+        return
 
     attachments = root.find('Attachments').findall('Attachment')
 
@@ -216,8 +223,6 @@ def parse_thoughts(root, cfg):
         name = thought.find('name').text
         guid = thought.find('guid').text
 
-
-
         # ignore forgotten thoughts
         if not ignore_thought(thought, cfg):
             try:
@@ -236,12 +241,12 @@ def parse_thoughts(root, cfg):
 
 
 def parse_linktypes(root, cfg):
+    upper_linknames = cfg['Convert']['upper_linknames']
+
     links = root.find('Links').findall('Link')
 
     # linktypes is a dictionary of link type names with keys guid values
     linktypes = {}
-
-    upper_linknames = cfg['Convert']['upper_linknames']
 
     h = HTMLParser.HTMLParser()
 
@@ -257,7 +262,6 @@ def parse_linktypes(root, cfg):
 
 
 def get_relationname(link, linktypes, cfg):
-
     upper_linknames = cfg['Convert']['upper_linknames']
     treeneoname = cfg['Convert']['tree_neoname']
     siblneoname = cfg['Convert']['sibl_neoname']
@@ -278,6 +282,7 @@ def get_relationname(link, linktypes, cfg):
 
 def get_order(ida, idb, link, cfg):
     treeneodir = cfg['Convert']['tree_neodir']
+
     direction = link.find('dir').text
 
     if is_treedir(direction):
@@ -376,7 +381,7 @@ def store2neo(root, cfg):
 
     nodes, types = parse_thoughts(root, cfg)
 
-    parse_attachments(root, nodes)
+    parse_attachments(root, nodes, cfg)
 
     linktypes = parse_linktypes(root, cfg)
 

@@ -52,6 +52,8 @@ class ExampleTestCase(TestCase):
 
 class ModExampleTestCase(TestCase):
     def modifyconfig(self, cfg):
+        cfg['Convert']['ignore_attachments'] = True
+        cfg['Convert']['ignore_private'] = False
         cfg['Convert']['sibl_mode'] = 'directed'
         cfg['Convert']['upper_linknames'] = True
         cfg['Convert']['tree_neoname'] = 'PARENT'
@@ -77,7 +79,7 @@ class ModExampleTestCase(TestCase):
 
     def test_nodes(self):
         n_nodes = self.cypher.execute('MATCH (n) RETURN COUNT (n)').one
-        self.assertEquals(n_nodes, 19)
+        self.assertEquals(n_nodes, 20)
 
     def test_examplenode(self):
         examplenode = self.cypher.execute(
@@ -86,7 +88,7 @@ class ModExampleTestCase(TestCase):
 
     def test_relationships(self):
         n_nodes = self.cypher.execute('MATCH (n)-[d]-() RETURN COUNT(d)/2').one
-        self.assertEquals(n_nodes, 30)
+        self.assertEquals(n_nodes, 31)
 
     def test_examplerelationship(self):
         examplerelationship = self.cypher.execute(
