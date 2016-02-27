@@ -140,12 +140,12 @@ def verify_empty(cypher):
         app_exit(0)
 
 
-def isURL(attachmentType):
-    return attachmentType == '3'
+def is_url(attachment_type):
+    return attachment_type == '3'
 
 
-def isPath(attachmentType):
-    return attachmentType == '2'
+def is_path(attachment_type):
+    return attachment_type == '2'
 
 
 def parse_attachments(root, nodes):
@@ -170,14 +170,14 @@ def parse_attachments(root, nodes):
 
     log.info('Parsing Attachments.')
     for attachment in attachments:
-        attachmentType = attachment.find('attachmentType').text
+        attachment_type = attachment.find('attachmentType').text
         location = attachment.find('location').text
-        objectID = attachment.find('objectID').text
+        object_id = attachment.find('objectID').text
 
-        if isURL(attachmentType):
-            nodes[objectID].properties['URL'] = location
-        elif isPath(attachmentType):
-            nodes[objectID].properties['path'] = location
+        if is_url(attachment_type):
+            nodes[object_id].properties['URL'] = location
+        elif is_path(attachment_type):
+            nodes[object_id].properties['path'] = location
 
 
 def parse_thoughts(root, cfg):
