@@ -47,9 +47,12 @@ def is_private(accesscontrol_type):
     return accesscontrol_type == '1'
 
 
-def ignore(forgotten, accesscontrol_type, cfg):
+def ignore_thought(thought, cfg):
     # ignore forgotten thoughts or private thoughts if configuration
     # requires it
+    forgotten = thought.find('forgottenDateTime') is not None
+    accesscontrol_type = thought.find('accessControlType').text
+
     ignore_private = cfg['Convert']['ignore_private']
     ignore_forgotten = cfg['Convert']['ignore_forgotten']
 
@@ -57,7 +60,7 @@ def ignore(forgotten, accesscontrol_type, cfg):
         or (is_private(accesscontrol_type) and ignore_private)
 
 
-def tree_braindir(direction):
+def braindir(direction):
     if direction == '1':
         return 'parent_to_child'
     elif direction == '2':
@@ -73,21 +76,22 @@ def linkname(h, name, upper_linknames):
         return h.unescape(name)
 
 
-def is_treelink(direction):
+def is_treedir(direction):
     return direction == '1' or direction == '2'
 
 
-def is_siblinglink(direction):
+def is_siblingdir(direction):
     return direction == '3'
 
 
-def is_backwardlink(is_backward):
-    return is_backward == '1'
+def is_backwardlink(link):
+    return link.find('isBackward').text == '1'
 
 
-def is_directedlink(strength):
+def is_directedlink(link):
     # if 2 link can be traversed both ways in the Brain,
     # but not when 3 (in Neo4j there is no difference)
+    strength = link.find('strength').text
     return strength == '2' or strength == '3'
 
 
@@ -95,13 +99,13 @@ def is_2waymode(siblmode):
     return siblmode == '2way'
 
 
-def is_linktype(is_type):
-    return is_type == '1'
+def is_linktype(link):
+    return link.find('isType').text == '1'
 
 
-def is_thoughttype(is_type):
+def is_thoughttype(thought):
     # 1 type, 3 label, 2?
-    return is_type != '0'
+    return thought.find('isType').text != '0'
 
 
 def get_graph(cfg):
@@ -212,12 +216,10 @@ def parse_thoughts(root, cfg):
         name = thought.find('name').text
         guid = thought.find('guid').text
 
-        is_type = thought.find('isType').text
-        forgotten = thought.find('forgottenDateTime') is not None
-        accesscontrol_type = thought.find('accessControlType').text
+
 
         # ignore forgotten thoughts
-        if not ignore(forgotten, accesscontrol_type, cfg):
+        if not ignore_thought(thought, cfg):
             try:
                 name = h.unescape(name)
             except:
@@ -225,7 +227,7 @@ def parse_thoughts(root, cfg):
                           format(name, type(name), len(name)))
                 raise
 
-            if is_thoughttype(is_type):
+            if is_thoughttype(thought):
                 types[guid] = name
             else:
                 nodes[guid] = Node(name=name)
@@ -245,11 +247,10 @@ def parse_linktypes(root, cfg):
 
     log.info('Parsing Link Types.')
     for link in links:
-        is_type = link.find('isType').text
         guid = link.find('guid').text
         name = link.find('name').text
 
-        if is_linktype(is_type):
+        if is_linktype(link):
             linktypes[guid] = linkname(h, name, upper_linknames)
 
     return linktypes
@@ -269,9 +270,9 @@ def get_relationname(link, linktypes, cfg):
         return linkname(h, name, upper_linknames)
     elif link_typeid is not None:
         return linktypes[link_typeid]
-    elif is_treelink(direction):
+    elif is_treedir(direction):
         return treeneoname
-    elif is_siblinglink(direction):
+    elif is_siblingdir(direction):
         return siblneoname
 
 
@@ -279,17 +280,15 @@ def get_order(ida, idb, link, cfg):
     treeneodir = cfg['Convert']['tree_neodir']
     direction = link.find('dir').text
 
-    treebraindir = tree_braindir(direction)
-    if is_treelink(direction):
+    if is_treedir(direction):
         # is configured direction of tree links the same as the direction
         # of particular link
-        if treebraindir == treeneodir:
+        if braindir(direction) == treeneodir:
             return ida, idb
         else:
             return idb, ida
-    elif is_siblinglink(direction):
-        is_backward = link.find('isBackward').text
-        if not is_backwardlink(is_backward):
+    elif is_siblingdir(direction):
+        if not is_backwardlink(link):
             return ida, idb
         else:
             return idb, ida
@@ -326,13 +325,12 @@ def parse_regularlinks(root, linktypes, nodes, types, cfg):
     # relationships is a dictionary of Relationship values with keys guid values
     relationships = {}
 
-    siblmode = cfg['Convert']['sibl_mode']
+    is_2way = is_2waymode(cfg['Convert']['sibl_mode'])
 
     log.info('Parsing Regular Links.')
     for link in links:
         # ignore type links
-        is_type = link.find('isType').text
-        if is_linktype(is_type):
+        if is_linktype(link):
             continue
 
         # decide relation name
@@ -348,7 +346,6 @@ def parse_regularlinks(root, linktypes, nodes, types, cfg):
             continue
 
         guid = link.find('guid').text
-        strength = link.find('strength').text
         try:
             relationships[guid] = Relationship(nodes[id1], rel_type,
                                                nodes[id2])
@@ -357,8 +354,8 @@ def parse_regularlinks(root, linktypes, nodes, types, cfg):
             update_type(id1, id2, types, nodes)
 
         direction = link.find('dir').text
-        if (is_siblinglink(direction) and not is_directedlink(strength) and
-                is_2waymode(siblmode)):
+        if (is_siblingdir(direction) and not is_directedlink(link) and
+                is_2way):
             try:
                 relationships[guid+'-B'] = Relationship(nodes[id2], rel_type,
                                                         nodes[id1])
