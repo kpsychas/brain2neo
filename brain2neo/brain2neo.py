@@ -128,13 +128,10 @@ def get_cypher(graph):
         # this object better close it after first query
         return graph.cypher
     except SocketError as e:
-        log.error('SocketError, there is likely no active connection to database.')
-        app_exit(1)
+        fatal_error('SocketError, there is likely no active connection to database.')
     except GraphError as e:
-        log.error('GraphError: {}'.format(e.message))
-        log.error('If you use default user and password, try changing them')
-        app_exit(1)
-
+        fatal_error('GraphError: {}'.format(e.message),
+                    'If you use default user and password, try changing them')
 
 def is_empty(cypher):
     log.info('Verifying provided database is empty.')
@@ -456,9 +453,24 @@ def get_root(xmlfile):
     return tree.getroot()
 
 
+def fatal_error(*messages):
+    for m in messages:
+        log.error(m)
+    app_exit(1)
+
+
 def app_exit(status):
     log.info('Exiting...')
     exit(status)
+
+
+def setup_logging(args):
+    if args.verbose == 2:
+        log.basicConfig(level=log.DEBUG)
+    elif args.verbose == 1:
+        log.basicConfig(level=log.INFO)
+    else:
+        log.basicConfig(level=log.WARN)
 
 
 def main():
@@ -471,30 +483,23 @@ def main():
                         help="increase output verbosity")
 
     args = parser.parse_args()
-    xmlfile = args.file
-    if args.verbose == 2:
-        log.basicConfig(level=log.DEBUG)
-    elif args.verbose == 1:
-        log.basicConfig(level=log.INFO)
-    else:
-        log.basicConfig(level=log.WARN)
 
+    setup_logging(args)
+
+    xmlfile = args.file
+    log.info('Getting root element from XML {}.'.format(xmlfile))
     try:
-        log.info('Getting root element from XML {}.'.format(xmlfile))
         root = get_root(xmlfile)
     except ET.ParseError as e:
-        log.error("Error while parsing {0}: {1}".format(xmlfile, e))
-        app_exit(1)
+        fatal_error("Error while parsing {0}: {1}".format(xmlfile, e))
     except IOError as e:
-        log.error("I/O error({0}): {1}".format(e.errno, e.strerror))
-        app_exit(1)
+        fatal_error("I/O error({0}): {1}".format(e.errno, e.strerror))
 
+    log.info('Getting configuration of XML {}.'.format(xmlfile))
     try:
-        log.info('Getting configuration of XML {}.'.format(xmlfile))
         cfg = get_cfg(xmlfile)
     except IOError as e:
-        log.error("I/O error({0}): {1}".format(e.errno, e.strerror))
-        app_exit(1)
+        fatal_error("I/O error({0}): {1}".format(e.errno, e.strerror))
 
     store2neo(root, cfg)
 
