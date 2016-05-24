@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import os
+import operator as op
 import logging as log
 
 from pkg_resources import resource_filename
@@ -16,6 +17,7 @@ import HTMLParser
 
 # use to convert HTML to text, used for support of non-ascii characters
 h = HTMLParser.HTMLParser()
+logger = log.getLogger('brain2neo')
 
 
 def chunks(l, n):
@@ -29,18 +31,18 @@ def create_entities(graph, entities):
 
     s = 1
     batch_size = 100
-    log.debug('Batch size: {}'.format(batch_size))
+    logger.debug('Batch size: {}'.format(batch_size))
     for entities_batch in chunks(entities_v, batch_size):
-        log.debug('Batch: {}-{}'.format(s, s + len(entities_batch) - 1))
+        logger.debug('Batch: {}-{}'.format(s, s + len(entities_batch) - 1))
         s += batch_size
-        graph.create(*entities_batch)
+        graph.create(reduce(op.or_, entities_batch))
 
 
 def update_type(id1, id2, types, nodes):
     if id1 in types and id2 in nodes:
-        nodes[id2].labels.add(types[id1])
+        nodes[id2].add_label(types[id1])
     elif id2 in types and id1 in nodes:
-        nodes[id1].labels.add(types[id2])
+        nodes[id1].add_label(types[id2])
 
 
 def is_private(accesscontrol_type):
@@ -116,33 +118,27 @@ def is_thoughttype(thought):
 def get_graph(cfg):
     neo4j_uri = cfg['Neo4j']['neo4j_uri']
 
-    if neo4j_uri != '':
-        return Graph(neo4j_uri)
-    else:
-        return Graph()
-
-
-def get_cypher(graph):
     try:
-        # TODO in case there is an active connection during the lifetime of
-        # this object better close it after first query
-        return graph.cypher
+        if neo4j_uri != '':
+            return Graph(neo4j_uri)
+        else:
+            return Graph()
     except SocketError as e:
-        fatal_error('SocketError, there is likely no active connection to database.')
-    except GraphError as e:
-        fatal_error('GraphError: {}'.format(e.message),
-                    'If you use default user and password, try changing them')
-
-def is_empty(cypher):
-    log.info('Verifying provided database is empty.')
-    results = cypher.execute("MATCH (n) RETURN n IS NULL AS isEmpty LIMIT 1;")
-
-    return results.one is None
+        fatal_error('SocketError, there is likely no '
+                    'active connection to database.')
 
 
-def verify_empty(cypher):
-    if not is_empty(cypher):
-        log.warn('Provided database graph is not empty. Choose another one.')
+def is_empty(graph):
+    logger.info('Verifying provided database is empty.')
+    results = graph.run('MATCH (n) RETURN n IS NULL AS isEmpty LIMIT 1;')
+
+    return results.evaluate() is None
+
+
+def verify_empty(graph):
+    if not is_empty(graph):
+        logger.warn('Provided database graph is not empty. '
+                    'Choose another one.')
         app_exit(0)
 
 
@@ -183,7 +179,7 @@ def parse_attachments(root, nodes, cfg):
 
     attachments = root.find('Attachments').findall('Attachment')
 
-    log.info('Parsing Attachments.')
+    logger.info('Parsing Attachments.')
     for attachment in attachments:
         attachment_type = attachment.find('attachmentType').text
         location = attachment.find('location').text
@@ -224,7 +220,7 @@ def parse_thoughts(root, cfg):
     # types is a dictionary of thought type names with keys guid values
     types = {}
 
-    log.info('Parsing Thoughts.')
+    logger.info('Parsing Thoughts.')
     for thought in thoughts:
         name = thought.find('name').text
         guid = thought.find('guid').text
@@ -234,8 +230,8 @@ def parse_thoughts(root, cfg):
             try:
                 name = h.unescape(name)
             except:
-                log.error('Unsuccessful decoding of {} of type {} and length {}.'.
-                          format(name, type(name), len(name)))
+                log.error('Unsuccessful decoding of {} of type {}'
+                          'and length {}.'.format(name, type(name), len(name)))
                 raise
 
             if is_thoughttype(thought):
@@ -256,7 +252,7 @@ def parse_linktypes(root, cfg):
 
     h = HTMLParser.HTMLParser()
 
-    log.info('Parsing Link Types.')
+    logger.info('Parsing Link Types.')
     for link in links:
         guid = link.find('guid').text
         name = link.find('name').text
@@ -336,12 +332,13 @@ def parse_regularlinks(root, linktypes, nodes, types, cfg):
 
     links = root.find('Links').findall('Link')
 
-    # relationships is a dictionary of Relationship values with keys guid values
+    # relationships is a dictionary of Relationship values
+    # with keys guid values
     relationships = {}
 
     mode2way = is_2waymode(cfg['Convert']['sibl_mode'])
 
-    log.info('Parsing Regular Links.')
+    logger.info('Parsing Regular Links.')
     for link in links:
         # ignore type links
         if is_linktype(link):
@@ -371,9 +368,7 @@ def store2neo(root, cfg):
     # Creates a py2neo Graph object (does not connect to db yet)
     graph = get_graph(cfg)
 
-    cypher = get_cypher(graph)
-
-    verify_empty(cypher)
+    verify_empty(graph)
 
     nodes, types = parse_thoughts(root, cfg)
 
@@ -383,10 +378,10 @@ def store2neo(root, cfg):
 
     relationships = parse_regularlinks(root, linktypes, nodes, types, cfg)
 
-    log.info('Creating graph entities.')
-    log.info('Creating {} nodes.'.format(len(nodes)))
+    logger.info('Creating graph entities.')
+    logger.info('Creating {} nodes.'.format(len(nodes)))
     create_entities(graph, nodes)
-    log.info('Creating {} relationships.'.format(len(relationships)))
+    logger.info('Creating {} relationships.'.format(len(relationships)))
     create_entities(graph, relationships)
 
 
@@ -406,8 +401,8 @@ def print_validation_errors(config, res):
 
 def get_cfgobj(cfgfile, cfgspecfile):
     if cfgfile == cfgspecfile:
-        raise ValueError('Configuration file is the same as specification file:'
-                         ' {}.'.format(cfgspecfile))
+        raise ValueError('Configuration file is the same as specification '
+                         'file: {}.'.format(cfgspecfile))
 
     config = ConfigObj(cfgfile, configspec=cfgspecfile,
                        file_error=True)
@@ -421,8 +416,7 @@ def get_cfgobj(cfgfile, cfgspecfile):
     else:
         print_validation_errors(config, res)
         raise ValueError('Failed to validate file {} using '
-                         'specification {}'.format(cfgfile,
-                                                   cfgspecfile))
+                         'specification {}'.format(cfgfile, cfgspecfile))
 
 
 def get_cfg(xmlfile):
@@ -433,16 +427,17 @@ def get_cfg(xmlfile):
                                     os.path.join('spec', 'specification.cfg'))
 
     if not os.path.isfile(cfgfile):
-        log.warn('Warning configuration file {} does not exist'.format(cfgfile))
-        log.warn('Generating empty configuration file {} (=default behavior)'
-                 .format(cfgfile))
+        logger.warn('Warning configuration file {} does not exist'
+                    .format(cfgfile))
+        logger.warn('Generating empty configuration file {} '
+                    '(=default behavior)'.format(cfgfile))
 
         # try to create file (can fail due to any kind of race condition)
         try:
             open(cfgfile, 'a').close()
         except IOError as e:
-            log.error("I/O error({0}) while generating {2}: {1}"
-                      .format(e.errno, e.strerror, cfgfile))
+            logger.error('I/O error({0}) while generating {2}: {1}'
+                         .format(e.errno, e.strerror, cfgfile))
             raise
 
     return get_cfgobj(cfgfile, cfgspecfile)
@@ -455,22 +450,27 @@ def get_root(xmlfile):
 
 def fatal_error(*messages):
     for m in messages:
-        log.error(m)
+        logger.error(m)
     app_exit(1)
 
 
 def app_exit(status):
-    log.info('Exiting...')
+    logger.info('Exiting...')
     exit(status)
 
 
 def setup_logging(args):
     if args.verbose == 2:
-        log.basicConfig(level=log.DEBUG)
+        logger.setLevel(log.DEBUG)
     elif args.verbose == 1:
-        log.basicConfig(level=log.INFO)
+        logger.setLevel(log.INFO)
     else:
-        log.basicConfig(level=log.WARN)
+        logger.setLevel(log.WARN)
+
+    sh = log.StreamHandler()
+    formatter = log.Formatter('%(name)s - %(message)s')
+    sh.setFormatter(formatter)
+    logger.addHandler(sh)
 
 
 def main():
@@ -479,27 +479,27 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-f', '--file', help='Brain XML file to be parsed',
                         required=True)
-    parser.add_argument("-v", "--verbose", action="count",
-                        help="increase output verbosity")
+    parser.add_argument('-v', '--verbose', action='count',
+                        help='increase output verbosity')
 
     args = parser.parse_args()
 
     setup_logging(args)
 
     xmlfile = args.file
-    log.info('Getting root element from XML {}.'.format(xmlfile))
+    logger.info('Getting root element from XML {}.'.format(xmlfile))
     try:
         root = get_root(xmlfile)
     except ET.ParseError as e:
-        fatal_error("Error while parsing {0}: {1}".format(xmlfile, e))
+        fatal_error('Error while parsing {0}: {1}'.format(xmlfile, e))
     except IOError as e:
-        fatal_error("I/O error({0}): {1}".format(e.errno, e.strerror))
+        fatal_error('I/O error({0}): {1}'.format(e.errno, e.strerror))
 
-    log.info('Getting configuration of XML {}.'.format(xmlfile))
+    logger.info('Getting configuration of XML {}.'.format(xmlfile))
     try:
         cfg = get_cfg(xmlfile)
     except IOError as e:
-        fatal_error("I/O error({0}): {1}".format(e.errno, e.strerror))
+        fatal_error('I/O error({0}): {1}'.format(e.errno, e.strerror))
 
     store2neo(root, cfg)
 

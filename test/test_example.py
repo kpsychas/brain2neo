@@ -11,42 +11,44 @@ class ExampleTestCase(TestCase):
         cfg = b2n.get_cfg(xmlfile)
         root = b2n.get_root(xmlfile)
 
-        graph = b2n.get_graph(cfg)
-        self.cypher = b2n.get_cypher(graph)
+        self.graph = b2n.get_graph(cfg)
 
         # empty graph
-        self.cypher.execute('MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE n,r')
-        self.assertTrue(b2n.is_empty(self.cypher))
+        self.graph.run('MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE n,r')
+        self.assertTrue(b2n.is_empty(self.graph))
 
         b2n.store2neo(root, cfg)
 
     def test_nonempty(self):
-        self.assertFalse(b2n.is_empty(self.cypher))
+        self.assertFalse(b2n.is_empty(self.graph))
 
     def test_nodes(self):
-        n_nodes = self.cypher.execute('MATCH (n) RETURN COUNT (n)').one
+        n_nodes = self.graph.run('MATCH (n) RETURN COUNT (n)').evaluate()
         self.assertEquals(n_nodes, 19)
 
     def test_examplenode(self):
-        examplenode = self.cypher.execute(
-            'MATCH (n{name:"Example"}) RETURN (n)').one
+        examplenode = self.graph.run(
+            'MATCH (n{name:"Example"}) RETURN (n)').evaluate()
         self.assertIsNotNone(examplenode)
 
     def test_relationships(self):
-        n_nodes = self.cypher.execute('MATCH (n)-[d]-() RETURN COUNT(d)/2').one
+        n_nodes = self.graph.run('MATCH (n)-[d]-() RETURN COUNT(d)/2') \
+            .evaluate()
         self.assertEquals(n_nodes, 32)
 
     def test_examplerelationship(self):
-        examplerelationship = self.cypher.execute(
-            'MATCH (n)-[d:`based on`]-() RETURN (d)').one
+        examplerelationship = self.graph.run(
+            'MATCH (n)-[d:`based on`]-() RETURN (d)').evaluate()
         self.assertIsNotNone(examplerelationship)
 
     def test_tree_neoname(self):
-        examplechildren = self.cypher.execute(
-            'MATCH (n{name:"Example"})-[d:`CHILD`]->() RETURN COUNT(d)').one
+        examplechildren = self.graph.run(
+            'MATCH (n{name:"Example"})-[d:`CHILD`]->() RETURN COUNT(d)') \
+                .evaluate()
         self.assertEquals(examplechildren, 6)
-        notexamplechildren = self.cypher.execute(
-            'MATCH (n{name:"Example"})<-[d:`CHILD`]-() RETURN COUNT(d)').one
+        notexamplechildren = self.graph.run(
+            'MATCH (n{name:"Example"})<-[d:`CHILD`]-() RETURN COUNT(d)') \
+                .evaluate()
         self.assertEquals(notexamplechildren, 0)
 
 
@@ -65,42 +67,44 @@ class ModExampleTestCase(TestCase):
         root = b2n.get_root(xmlfile)
 
         self.modifyconfig(cfg)
-        graph = b2n.get_graph(cfg)
-        self.cypher = b2n.get_cypher(graph)
+        self.graph = b2n.get_graph(cfg)
 
         # empty graph
-        self.cypher.execute('MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE n,r')
-        self.assertTrue(b2n.is_empty(self.cypher))
+        self.graph.run('MATCH (n) OPTIONAL MATCH (n)-[r]-() DELETE n,r')
+        self.assertTrue(b2n.is_empty(self.graph))
 
         b2n.store2neo(root, cfg)
 
     def test_nonempty(self):
-        self.assertFalse(b2n.is_empty(self.cypher))
+        self.assertFalse(b2n.is_empty(self.graph))
 
     def test_nodes(self):
-        n_nodes = self.cypher.execute('MATCH (n) RETURN COUNT (n)').one
+        n_nodes = self.graph.run('MATCH (n) RETURN COUNT (n)').evaluate()
         self.assertEquals(n_nodes, 20)
 
     def test_examplenode(self):
-        examplenode = self.cypher.execute(
-            'MATCH (n{name:"Example"}) RETURN (n)').one
+        examplenode = self.graph.run(
+            'MATCH (n{name:"Example"}) RETURN (n)').evaluate()
         self.assertIsNotNone(examplenode)
 
     def test_relationships(self):
-        n_nodes = self.cypher.execute('MATCH (n)-[d]-() RETURN COUNT(d)/2').one
+        n_nodes = self.graph.run('MATCH (n)-[d]-() RETURN COUNT(d)/2') \
+            .evaluate()
         self.assertEquals(n_nodes, 31)
 
     def test_examplerelationship(self):
-        examplerelationship = self.cypher.execute(
-            'MATCH (n)-[d:`BASED ON`]-() RETURN (d)').one
+        examplerelationship = self.graph.run(
+            'MATCH (n)-[d:`BASED ON`]-() RETURN (d)').evaluate()
         self.assertIsNotNone(examplerelationship)
 
     def test_tree_neoname(self):
-        notexamplechildren = self.cypher.execute(
-            'MATCH (n{name:"Example"})-[d:`PARENT`]->() RETURN COUNT(d)').one
+        notexamplechildren = self.graph.run(
+            'MATCH (n{name:"Example"})-[d:`PARENT`]->() RETURN COUNT(d)') \
+                .evaluate()
         self.assertEquals(notexamplechildren, 0)
-        examplechildren = self.cypher.execute(
-            'MATCH (n{name:"Example"})<-[d:`PARENT`]-() RETURN COUNT(d)').one
+        examplechildren = self.graph.run(
+            'MATCH (n{name:"Example"})<-[d:`PARENT`]-() RETURN COUNT(d)') \
+                .evaluate()
         self.assertEquals(examplechildren, 6)
 
 
