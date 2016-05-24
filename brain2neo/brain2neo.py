@@ -8,7 +8,7 @@ from pkg_resources import resource_filename
 
 import xml.etree.ElementTree as ET
 
-from py2neo import Graph, Node, Relationship, GraphError
+from py2neo import Graph, Node, Relationship
 from py2neo.packages.httpstream.http import SocketError
 from configobj import ConfigObj, flatten_errors
 from validate import Validator
@@ -123,7 +123,7 @@ def get_graph(cfg):
             return Graph(neo4j_uri)
         else:
             return Graph()
-    except SocketError as e:
+    except SocketError:
         fatal_error('SocketError, there is likely no '
                     'active connection to database.')
 
