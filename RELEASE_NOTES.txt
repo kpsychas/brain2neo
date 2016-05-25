@@ -2,6 +2,13 @@
 * file which link to external tools, if the build
 * is stable it is most likely better to use the developement version
 
+Version 1.1.1
+-------------
+-Compatibility with latest version of py2neo
+-Logs of other modules ignored
+-Enabled parsing of URL and path attachements
+
+
 Version 1.1
 -----------
 More configuration options
