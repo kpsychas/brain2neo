@@ -15,9 +15,10 @@ Motivation
 ----------
 `The Brain` provides a nice user interface to create modify and navigate between thoughts,
 which can be anything from quotes or ideas to songs, movies or people. Querying capabilities
-on the other hand are limited so one cannot find e.g. How many thoughts of certain type
+on the other hand are limited, so one cannot find for example how many thoughts of certain type
 (e.g. songs) are there in the visualization. `Neo4j` can do that and even more, provided
-the user has created the appropriate connections while creating the brain file (e.g. order singers by the number of their songs in database).
+the user has created the appropriate connections while creating the brain file 
+(e.g. one can order singers by the number of their songs in database).
 
 Quick Demo
 ----------
