@@ -8,11 +8,16 @@ About
 -----
 
 This project is a tool for converting XML documents exported from
-[`The Brain`](http://www.thebrain.com/) application to a
-[`Neo4j`](http://neo4j.com/) database.
+[`The Brain 8`](http://www.thebrain.com/) application to a
+[`Neo4j`](http://neo4j.com/) database. 
+
 
 Motivation
 ----------
+The motivation and the project itself are related to version 8 of the Brain.
+Unfortunately starting from version 9 application no longer supports exports to XML,
+although it offers more features.
+
 `The Brain` provides a nice user interface to create modify and navigate between thoughts,
 which can be anything from quotes or ideas to songs, movies or people. Querying capabilities
 on the other hand are limited, so one cannot find for example how many thoughts of certain type
