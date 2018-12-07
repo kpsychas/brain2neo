@@ -1,33 +1,31 @@
 #!/usr/bin/env python
 
 import os
+import html
+import functools
 import operator as op
 import logging as log
 
 from pkg_resources import resource_filename
 
-import xml.etree.ElementTree as ET
+from xml.etree.ElementTree import ParseError, parse
 
-from py2neo import Graph, Node, Relationship
-from py2neo.packages.httpstream.http import SocketError
+from py2neo import Graph, Node, Relationship, GraphError
 from configobj import ConfigObj, flatten_errors
 from validate import Validator
 
-import HTMLParser
 
-# use to convert HTML to text, used for support of non-ascii characters
-h = HTMLParser.HTMLParser()
 logger = log.getLogger('brain2neo')
 
 
 def chunks(l, n):
-    ''' Yield successive n-sized chunks from l. '''
-    for i in xrange(0, len(l), n):
+    """ Yield successive n-sized chunks from l. """
+    for i in range(0, len(l), n):
         yield l[i:i+n]
 
 
 def create_entities(graph, entities):
-    entities_v = entities.values()
+    entities_v = list(entities.values())
 
     s = 1
     batch_size = 100
@@ -35,7 +33,7 @@ def create_entities(graph, entities):
     for entities_batch in chunks(entities_v, batch_size):
         logger.debug('Batch: {}-{}'.format(s, s + len(entities_batch) - 1))
         s += batch_size
-        graph.create(reduce(op.or_, entities_batch))
+        graph.create(functools.reduce(op.or_, entities_batch))
 
 
 def update_type(id1, id2, types, nodes):
@@ -45,24 +43,24 @@ def update_type(id1, id2, types, nodes):
         nodes[id1].add_label(types[id2])
 
 
-def is_private(accesscontrol_type):
-    return accesscontrol_type == '1'
+def is_private(access_control_type):
+    return access_control_type == '1'
 
 
 def ignore_thought(thought, cfg):
     # ignore forgotten thoughts or private thoughts if configuration
     # requires it
     forgotten = thought.find('forgottenDateTime') is not None
-    accesscontrol_type = thought.find('accessControlType').text
+    access_control_type = thought.find('accessControlType').text
 
     ignore_private = cfg['Convert']['ignore_private']
     ignore_forgotten = cfg['Convert']['ignore_forgotten']
 
     return (forgotten and ignore_forgotten) \
-        or (is_private(accesscontrol_type) and ignore_private)
+        or (is_private(access_control_type) and ignore_private)
 
 
-def braindir(direction):
+def brain_dir(direction):
     if direction == '1':
         return 'parent_to_child'
     elif direction == '2':
@@ -71,46 +69,46 @@ def braindir(direction):
         return 'sibling'
 
 
-def linkname(h, name, upper_linknames):
-    if upper_linknames:
-        return h.unescape(name).upper()
+def link_name(name, upper_link_names):
+    if upper_link_names:
+        return html.unescape(name).upper()
     else:
-        return h.unescape(name)
+        return html.unescape(name)
 
 
-def is_treedir(direction):
+def is_tree_dir(direction):
     return direction == '1' or direction == '2'
 
 
-def is_siblingdir(direction):
+def is_sibling_dir(direction):
     return direction == '3'
 
 
-def is_backwardlink(link):
+def is_backward_link(link):
     return link.find('isBackward').text == '1'
 
 
-def is_directedlink(link):
+def is_directed_link(link):
     # if 2 link can be traversed both ways in the Brain,
     # but not when 3 (in Neo4j there is no difference)
     strength = link.find('strength').text
     return strength == '2' or strength == '3'
 
 
-def is_2waylink(link):
+def is_2way_link(link):
     direction = link.find('dir').text
-    return is_siblingdir(direction) and not is_directedlink(link)
+    return is_sibling_dir(direction) and not is_directed_link(link)
 
 
-def is_2waymode(siblmode):
+def is_2way_mode(siblmode):
     return siblmode == '2way'
 
 
-def is_linktype(link):
+def is_link_type(link):
     return link.find('isType').text == '1'
 
 
-def is_thoughttype(thought):
+def is_thought_type(thought):
     # 1 type, 3 label, 2?
     return thought.find('isType').text != '0'
 
@@ -123,8 +121,8 @@ def get_graph(cfg):
             return Graph(neo4j_uri)
         else:
             return Graph()
-    except SocketError:
-        fatal_error('SocketError, there is likely no '
+    except GraphError:
+        fatal_error('GraphError, there is likely no '
                     'active connection to database.')
 
 
@@ -137,8 +135,8 @@ def is_empty(graph):
 
 def verify_empty(graph):
     if not is_empty(graph):
-        logger.warn('Provided database graph is not empty. '
-                    'Choose another one.')
+        logger.warning('Provided database graph is not empty. '
+                       'Choose another one.')
         app_exit(0)
 
 
@@ -155,7 +153,7 @@ def ignore_attachments(cfg):
 
 
 def parse_attachments(root, nodes, cfg):
-    '''
+    """
     attachment attributes - only attributes with * are parsed
     --------------------------------------------------------------------------
     | name                 | explanation                                     |
@@ -172,7 +170,7 @@ def parse_attachments(root, nodes, cfg):
     | modificationDateTime | timestamp                                       |
     | deletedDateTime      | timestamp                                       |
     --------------------------------------------------------------------------
-    '''
+    """
 
     if ignore_attachments(cfg):
         return
@@ -186,13 +184,13 @@ def parse_attachments(root, nodes, cfg):
         object_id = attachment.find('objectID').text
 
         if is_url(attachment_type):
-            nodes[object_id].properties['URL'] = location
+            nodes[object_id]['URL'] = location
         elif is_path(attachment_type):
-            nodes[object_id].properties['path'] = location
+            nodes[object_id]['path'] = location
 
 
 def parse_thoughts(root, cfg):
-    '''
+    """
     thought attributes - only attributes with * are parsed
     --------------------------------------------------------------------------
     | name                        | explanation                              |
@@ -212,7 +210,7 @@ def parse_thoughts(root, cfg):
     | color                       | color of thought in the Brain            |
     | accessControlType*          | is thought private                       |
     --------------------------------------------------------------------------
-    '''
+    """
 
     thoughts = root.find('Thoughts').findall('Thought')
     # nodes is a dictionary of Node values with keys guid values
@@ -227,14 +225,9 @@ def parse_thoughts(root, cfg):
 
         # ignore forgotten thoughts
         if not ignore_thought(thought, cfg):
-            try:
-                name = h.unescape(name)
-            except:
-                log.error('Unsuccessful decoding of {} of type {}'
-                          'and length {}.'.format(name, type(name), len(name)))
-                raise
+            name = html.unescape(name)
 
-            if is_thoughttype(thought):
+            if is_thought_type(thought):
                 types[guid] = name
             else:
                 nodes[guid] = Node(name=name)
@@ -242,62 +235,60 @@ def parse_thoughts(root, cfg):
     return nodes, types
 
 
-def parse_linktypes(root, cfg):
-    upper_linknames = cfg['Convert']['upper_linknames']
+def parse_link_types(root, cfg):
+    upper_link_names = cfg['Convert']['upper_link_names']
 
     links = root.find('Links').findall('Link')
 
-    # linktypes is a dictionary of link type names with keys guid values
-    linktypes = {}
-
-    h = HTMLParser.HTMLParser()
+    # link_types is a dictionary of link type names with keys guid values
+    link_types = {}
 
     logger.info('Parsing Link Types.')
     for link in links:
         guid = link.find('guid').text
         name = link.find('name').text
 
-        if is_linktype(link):
-            linktypes[guid] = linkname(h, name, upper_linknames)
+        if is_link_type(link):
+            link_types[guid] = link_name(name, upper_link_names)
 
-    return linktypes
+    return link_types
 
 
-def get_relationname(link, linktypes, cfg):
-    upper_linknames = cfg['Convert']['upper_linknames']
-    treeneoname = cfg['Convert']['tree_neoname']
-    siblneoname = cfg['Convert']['sibl_neoname']
+def get_relation_name(link, link_types, cfg):
+    upper_link_names = cfg['Convert']['upper_link_names']
+    tree_neoname = cfg['Convert']['tree_neoname']
+    sibl_neoname = cfg['Convert']['sibl_neoname']
 
     name = link.find('name').text
     link_typeid = link.find('linkTypeID').text
     direction = link.find('dir').text
 
     if name is not None:
-        return linkname(h, name, upper_linknames)
+        return link_name(name, upper_link_names)
     elif link_typeid is not None:
-        return linktypes[link_typeid]
-    elif is_treedir(direction):
-        return treeneoname
-    elif is_siblingdir(direction):
-        return siblneoname
+        return link_types[link_typeid]
+    elif is_tree_dir(direction):
+        return tree_neoname
+    elif is_sibling_dir(direction):
+        return sibl_neoname
 
 
 def get_order(link, cfg):
-    treeneodir = cfg['Convert']['tree_neodir']
+    tree_neodir = cfg['Convert']['tree_neodir']
 
     ida = link.find('idA').text
     idb = link.find('idB').text
     direction = link.find('dir').text
 
-    if is_treedir(direction):
+    if is_tree_dir(direction):
         # is configured direction of tree links the same as the direction
         # of particular link
-        if braindir(direction) == treeneodir:
+        if brain_dir(direction) == tree_neodir:
             return ida, idb
         else:
             return idb, ida
-    elif is_siblingdir(direction):
-        if not is_backwardlink(link):
+    elif is_sibling_dir(direction):
+        if not is_backward_link(link):
             return ida, idb
         else:
             return idb, ida
@@ -305,8 +296,8 @@ def get_order(link, cfg):
         return None, None  # link is type
 
 
-def parse_regularlinks(root, linktypes, nodes, types, cfg):
-    '''
+def parse_regular_links(root, link_types, nodes, types, cfg):
+    """
     link attributes - only attributes with * are parsed
     --------------------------------------------------------------------------
     | name                 | explanation                                     |
@@ -328,7 +319,7 @@ def parse_regularlinks(root, linktypes, nodes, types, cfg):
     | meaning              | 2 if link between labels, 1 otherwise           |
     | linkTypeID*          | guid of associated type  if any                 |
     --------------------------------------------------------------------------
-    '''
+    """
 
     links = root.find('Links').findall('Link')
 
@@ -336,16 +327,16 @@ def parse_regularlinks(root, linktypes, nodes, types, cfg):
     # with keys guid values
     relationships = {}
 
-    mode2way = is_2waymode(cfg['Convert']['sibl_mode'])
+    mode_2way = is_2way_mode(cfg['Convert']['sibl_mode'])
 
     logger.info('Parsing Regular Links.')
     for link in links:
         # ignore type links
-        if is_linktype(link):
+        if is_link_type(link):
             continue
 
         # decide relation name
-        rel_type = get_relationname(link, linktypes, cfg)
+        rel_type = get_relation_name(link, link_types, cfg)
 
         # decide order of connected thoughts
         id1, id2 = get_order(link, cfg)
@@ -354,7 +345,7 @@ def parse_regularlinks(root, linktypes, nodes, types, cfg):
         try:
             relationships[guid] = Relationship(nodes[id1], rel_type,
                                                nodes[id2])
-            if (is_2waylink(link) and mode2way):
+            if is_2way_link(link) and mode_2way:
                 relationships[guid+'-B'] = Relationship(nodes[id2], rel_type,
                                                         nodes[id1])
         except KeyError:
@@ -374,9 +365,9 @@ def store2neo(root, cfg):
 
     parse_attachments(root, nodes, cfg)
 
-    linktypes = parse_linktypes(root, cfg)
+    link_types = parse_link_types(root, cfg)
 
-    relationships = parse_regularlinks(root, linktypes, nodes, types, cfg)
+    relationships = parse_regular_links(root, link_types, nodes, types, cfg)
 
     logger.info('Creating graph entities.')
     logger.info('Creating {} nodes.'.format(len(nodes)))
@@ -399,13 +390,12 @@ def print_validation_errors(config, res):
         log.error('{} = {}'.format(section_string, error))
 
 
-def get_cfgobj(cfgfile, cfgspecfile):
-    if cfgfile == cfgspecfile:
+def get_cfg_obj(cfg_file, cfg_specfile):
+    if cfg_file == cfg_specfile:
         raise ValueError('Configuration file is the same as specification '
                          'file: {}.'.format(cfgspecfile))
 
-    config = ConfigObj(cfgfile, configspec=cfgspecfile,
-                       file_error=True)
+    config = ConfigObj(cfg_file, configspec=cfg_specfile, file_error=True)
 
     validator = Validator()
     res = config.validate(validator, preserve_errors=True)
@@ -416,35 +406,35 @@ def get_cfgobj(cfgfile, cfgspecfile):
     else:
         print_validation_errors(config, res)
         raise ValueError('Failed to validate file {} using '
-                         'specification {}'.format(cfgfile, cfgspecfile))
+                         'specification {}'.format(cfg_file, cfg_specfile))
 
 
-def get_cfg(xmlfile):
+def get_cfg(xml_file):
     # get name, ignore extension
-    f, _ = os.path.splitext(xmlfile)
-    cfgfile = '{}.cfg'.format(f)
-    cfgspecfile = resource_filename(__name__,
-                                    os.path.join('spec', 'specification.cfg'))
+    f, _ = os.path.splitext(xml_file)
+    cfg_file = '{}.cfg'.format(f)
+    cfg_specfile = resource_filename(__name__,
+                                     os.path.join('spec', 'specification.cfg'))
 
-    if not os.path.isfile(cfgfile):
-        logger.warn('Warning configuration file {} does not exist'
-                    .format(cfgfile))
-        logger.warn('Generating empty configuration file {} '
-                    '(=default behavior)'.format(cfgfile))
+    if not os.path.isfile(cfg_file):
+        logger.warning('Warning configuration file {} does not exist'
+                       .format(cfg_ile))
+        logger.warning('Generating empty configuration file {} '
+                       '(=default behavior)'.format(cfg_file))
 
         # try to create file (can fail due to any kind of race condition)
         try:
-            open(cfgfile, 'a').close()
+            open(cfg_file, 'a').close()
         except IOError as e:
             logger.error('I/O error({0}) while generating {2}: {1}'
-                         .format(e.errno, e.strerror, cfgfile))
+                         .format(e.errno, e.strerror, cfg_file))
             raise
 
-    return get_cfgobj(cfgfile, cfgspecfile)
+    return get_cfg_obj(cfg_file, cfg_specfile)
 
 
-def get_root(xmlfile):
-    tree = ET.parse(xmlfile)
+def get_root(xml_file):
+    tree = parse(xml_file)
     return tree.getroot()
 
 
@@ -486,18 +476,18 @@ def main():
 
     setup_logging(args)
 
-    xmlfile = args.file
-    logger.info('Getting root element from XML {}.'.format(xmlfile))
+    xml_file = args.file
+    logger.info('Getting root element from XML {}.'.format(xml_file))
     try:
-        root = get_root(xmlfile)
-    except ET.ParseError as e:
-        fatal_error('Error while parsing {0}: {1}'.format(xmlfile, e))
+        root = get_root(xml_file)
+    except ParseError as e:
+        fatal_error('Error while parsing {0}: {1}'.format(xml_file, e))
     except IOError as e:
         fatal_error('I/O error({0}): {1}'.format(e.errno, e.strerror))
 
-    logger.info('Getting configuration of XML {}.'.format(xmlfile))
+    logger.info('Getting configuration of XML {}.'.format(xml_file))
     try:
-        cfg = get_cfg(xmlfile)
+        cfg = get_cfg(xml_file)
     except IOError as e:
         fatal_error('I/O error({0}): {1}'.format(e.errno, e.strerror))
 

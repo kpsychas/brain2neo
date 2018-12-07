@@ -1,7 +1,7 @@
 language: python
 
 python:
-  - "2.7"
+  - "3.7"
 
 install:
   - pip install -r requirements.txt
@@ -9,7 +9,7 @@ install:
   - python setup.py install
 
 env:
-  - NEO4J_VERSION="2.3.1"
+  - NEO4J_VERSION="3.5.0"
 
 jdk:
   - oraclejdk7  # needed for local Neo4j 2.0+
