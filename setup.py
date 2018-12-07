@@ -10,7 +10,7 @@ setup(name='brain2neo',
       packages=['brain2neo'],
       install_requires=[
         'configobj >= 5.0.0',
-        'py2neo == 4'
+        'py2neo == 4.1.3'
       ],
       include_package_data = True,
       entry_points={
