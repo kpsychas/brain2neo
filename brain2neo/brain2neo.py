@@ -418,7 +418,7 @@ def get_cfg(xml_file):
 
     if not os.path.isfile(cfg_file):
         logger.warning('Warning configuration file {} does not exist'
-                       .format(cfg_ile))
+                       .format(cfg_file))
         logger.warning('Generating empty configuration file {} '
                        '(=default behavior)'.format(cfg_file))
 

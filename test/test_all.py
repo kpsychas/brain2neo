@@ -7,9 +7,9 @@ import test_example
 
 modules = [test_example]
 
-suites = [m.suite() for m in modules]
+suites = [m.test_suite() for m in modules]
 
-alltests = unittest.TestSuite(suites)
+all_tests = unittest.TestSuite(suites)
 
 if __name__ == "__main__":
-    unittest.TextTestRunner(verbosity=2).run(alltests)
+    unittest.TextTestRunner(verbosity=2).run(all_tests)
